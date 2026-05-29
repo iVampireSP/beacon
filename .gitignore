@@ -1,0 +1,7 @@
+# Test / build artifacts
+*.test
+*.out
+coverage/
+
+# OS
+.DS_Store
