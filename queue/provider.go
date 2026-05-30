@@ -13,8 +13,8 @@ type QueueServiceProvider struct {
 	app *container.Application
 }
 
-func NewQueueServiceProvider(app *container.Application) *QueueServiceProvider {
-	return &QueueServiceProvider{ServiceProvider: support.ServiceProvider{App: app}, app: app}
+func NewQueueServiceProvider(app *container.Application, kernel support.Kernel) *QueueServiceProvider {
+	return &QueueServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: kernel}, app: app}
 }
 
 func (p *QueueServiceProvider) Register() {
@@ -23,5 +23,3 @@ func (p *QueueServiceProvider) Register() {
 	p.app.Singleton(NewQueue)
 	p.AddCommand(NewWorker)
 }
-
-func (p *QueueServiceProvider) Boot() {}

@@ -6,28 +6,28 @@ import (
 	"github.com/iVampireSP/foundation/support"
 )
 
-// fakeApp captures RegisterCommands so the base can be tested without a real
-// container.
-type fakeApp struct{ registered []any }
+// fakeKernel captures RegisterCommands so the base can be tested without the
+// real console kernel.
+type fakeKernel struct{ registered []any }
 
-func (f *fakeApp) RegisterCommands(ctors ...any) { f.registered = append(f.registered, ctors...) }
+func (k *fakeKernel) RegisterCommands(ctors ...any) { k.registered = append(k.registered, ctors...) }
 
-// demoProvider embeds the base, as a real provider would, and registers two
-// command constructors in Register.
+// demoProvider embeds the base and declares commands in Register, as a real
+// provider does.
 type demoProvider struct {
 	support.ServiceProvider
 }
 
 func (p *demoProvider) Register() { p.AddCommand(func() {}, func() {}) }
 
-func TestServiceProviderCommandsPushToApplication(t *testing.T) {
-	app := &fakeApp{}
-	p := &demoProvider{ServiceProvider: support.ServiceProvider{App: app}}
+func TestServiceProviderAddCommandPushesToKernel(t *testing.T) {
+	k := &fakeKernel{}
+	p := &demoProvider{ServiceProvider: support.ServiceProvider{Kernel: k}}
 
 	p.Register()
 
-	if len(app.registered) != 2 {
-		t.Fatalf("want 2 registered command constructors, got %d", len(app.registered))
+	if len(k.registered) != 2 {
+		t.Fatalf("want 2 registered command constructors, got %d", len(k.registered))
 	}
 }
 

@@ -1,7 +1,6 @@
 package schedule
 
 import (
-	"github.com/iVampireSP/foundation/container"
 	"github.com/iVampireSP/foundation/support"
 )
 
@@ -12,12 +11,10 @@ type ScheduleServiceProvider struct {
 	support.ServiceProvider
 }
 
-func NewScheduleServiceProvider(app *container.Application) *ScheduleServiceProvider {
-	return &ScheduleServiceProvider{ServiceProvider: support.ServiceProvider{App: app}}
+func NewScheduleServiceProvider(kernel support.Kernel) *ScheduleServiceProvider {
+	return &ScheduleServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: kernel}}
 }
 
 func (p *ScheduleServiceProvider) Register() {
 	p.AddCommand(NewSchedulerCommand)
 }
-
-func (p *ScheduleServiceProvider) Boot() {}

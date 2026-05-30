@@ -2,23 +2,20 @@ package container
 
 import (
 	"errors"
-	"os"
 
-	"github.com/iVampireSP/foundation/console"
 	"github.com/iVampireSP/foundation/support"
-	"github.com/iVampireSP/foundation/version"
-	"github.com/spf13/cobra"
 )
 
-// Application manages the full lifecycle of service providers and the DI container.
-// It follows Laravel's Application pattern: Register → Boot → Run.
+// Application manages the lifecycle of service providers over the DI container.
+// It follows Laravel's Application pattern: Register → Boot. It is a PURE DI +
+// provider-lifecycle manager — it knows nothing about cobra, console commands,
+// or the microservice runtime; those live in the console kernel and the
+// transport package respectively.
 type Application struct {
 	*Container
-	providers        []support.Provider
-	commands         []console.ConsoleCommand
-	commandFactories []any
-	shutdownFns      []func() error
-	booted           bool
+	providers   []support.Provider
+	shutdownFns []func() error
+	booted      bool
 }
 
 // NewApplication creates a new application with a fresh container.
@@ -35,10 +32,6 @@ func NewApplication() *Application {
 // Providers are passed as constructed instances (a *XxxServiceProvider satisfies
 // support.Provider directly), mirroring Laravel's
 // $app->register(new Provider($app)). No adapter or reflection is involved.
-//
-// Usage:
-//
-//	app.Register(cache.NewServiceProvider(app), jwt.NewServiceProvider(app), ...)
 func (app *Application) Register(providers ...support.Provider) {
 	for _, p := range providers {
 		p.Register()
@@ -46,20 +39,15 @@ func (app *Application) Register(providers ...support.Provider) {
 	}
 }
 
-// Boot calls Boot() on all registered providers, then collects the console
-// commands declared by any provider implementing console.CommandProvider.
-// This is Phase 2 of the lifecycle, called after all providers are registered.
+// Boot calls Boot() on all registered providers. This is Phase 2 of the
+// lifecycle, called after all providers are registered. Command collection is
+// NOT done here — the console kernel collects commands when it runs.
 func (app *Application) Boot() error {
 	if app.booted {
 		return nil
 	}
 	for _, p := range app.providers {
 		p.Boot()
-	}
-	// Collect commands declared via the CommandProvider capability, so each
-	// module owns its own commands instead of a central registration list.
-	for _, cp := range ProvidersImplementing[console.CommandProvider](app) {
-		app.AddCommand(cp.Commands()...)
 	}
 	app.booted = true
 	return nil
@@ -84,20 +72,6 @@ func ProvidersImplementing[T any](app *Application) []T {
 	return out
 }
 
-// AddCommand registers built console commands with the application.
-func (app *Application) AddCommand(cmds ...console.ConsoleCommand) {
-	app.commands = append(app.commands, cmds...)
-}
-
-// RegisterCommands registers console commands by their constructors. Each
-// constructor is built through the container (constructor injection) when the
-// command tree is assembled in Run. This is the push counterpart to the
-// CommandProvider capability and backs support.ServiceProvider.Commands(), so
-// *Application satisfies support.Application.
-func (app *Application) RegisterCommands(constructors ...any) {
-	app.commandFactories = append(app.commandFactories, constructors...)
-}
-
 // OnShutdown registers a cleanup callback to be called during shutdown.
 // Callbacks are executed in reverse registration order.
 func (app *Application) OnShutdown(fn func() error) {
@@ -113,43 +87,4 @@ func (app *Application) Shutdown() error {
 		}
 	}
 	return errors.Join(errs...)
-}
-
-// Run executes the full application lifecycle: Boot → collect commands → cobra.Execute.
-func (app *Application) Run(use, short string) error {
-	if err := app.Boot(); err != nil {
-		return err
-	}
-
-	root := &cobra.Command{
-		Use:     use,
-		Short:   short,
-		Version: version.String(),
-	}
-
-	// Add all registered commands
-	for _, cc := range app.commands {
-		root.AddCommand(cc.Command())
-	}
-
-	// Build and add commands registered by constructor (push model): each
-	// factory's dependencies are injected from the container.
-	for _, ctor := range app.commandFactories {
-		cmd, err := app.BuildCommand(ctor)
-		if err != nil {
-			return err
-		}
-		root.AddCommand(cmd)
-	}
-
-	// Shutdown hook
-	root.PersistentPostRunE = func(_ *cobra.Command, _ []string) error {
-		return app.Shutdown()
-	}
-
-	if err := root.Execute(); err != nil {
-		_ = app.Shutdown()
-		os.Exit(1)
-	}
-	return nil
 }

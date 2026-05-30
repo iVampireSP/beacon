@@ -13,8 +13,8 @@ type BusServiceProvider struct {
 	app *container.Application
 }
 
-func NewBusServiceProvider(app *container.Application) *BusServiceProvider {
-	return &BusServiceProvider{ServiceProvider: support.ServiceProvider{App: app}, app: app}
+func NewBusServiceProvider(app *container.Application, kernel support.Kernel) *BusServiceProvider {
+	return &BusServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: kernel}, app: app}
 }
 
 func (p *BusServiceProvider) Register() {
@@ -22,5 +22,3 @@ func (p *BusServiceProvider) Register() {
 	p.app.Singleton(NewBus)
 	p.AddCommand(NewEventBus)
 }
-
-func (p *BusServiceProvider) Boot() {}

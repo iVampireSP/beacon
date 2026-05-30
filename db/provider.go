@@ -19,8 +19,8 @@ type DatabaseServiceProvider struct {
 	app *container.Application
 }
 
-func NewDatabaseServiceProvider(app *container.Application) *DatabaseServiceProvider {
-	return &DatabaseServiceProvider{ServiceProvider: support.ServiceProvider{App: app}, app: app}
+func NewDatabaseServiceProvider(app *container.Application, kernel support.Kernel) *DatabaseServiceProvider {
+	return &DatabaseServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: kernel}, app: app}
 }
 
 func (p *DatabaseServiceProvider) Register() {

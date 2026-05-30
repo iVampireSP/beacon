@@ -1,4 +1,4 @@
-package container_test
+package console
 
 import (
 	"testing"
@@ -9,21 +9,24 @@ import (
 
 type buildDep struct{ name string }
 
-func TestBuildCommandInjectsDependencies(t *testing.T) {
+// TestKernelBuildInjectsDependencies verifies the kernel resolves a command
+// constructor's parameters from the container (and injects *Application).
+func TestKernelBuildInjectsDependencies(t *testing.T) {
 	app := container.NewApplication()
 	if err := app.Singleton(func() *buildDep { return &buildDep{name: "svc"} }); err != nil {
 		t.Fatalf("singleton: %v", err)
 	}
+	k := NewKernel(app)
 
 	var gotDep *buildDep
 	var gotApp *container.Application
-	cmd, err := app.BuildCommand(func(dep *buildDep, a *container.Application) *cobra.Command {
+	cmd, err := k.build(func(dep *buildDep, a *container.Application) *cobra.Command {
 		gotDep = dep
 		gotApp = a
 		return &cobra.Command{Use: "demo"}
 	})
 	if err != nil {
-		t.Fatalf("build command: %v", err)
+		t.Fatalf("build: %v", err)
 	}
 
 	if cmd == nil || cmd.Use != "demo" {
