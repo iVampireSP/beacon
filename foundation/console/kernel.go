@@ -14,7 +14,7 @@ import (
 
 // cobraCommandType is *cobra.Command, used to pick command constructors out of
 // the application's single contribution bucket.
-var cobraCommandType = reflect.TypeOf((*cobra.Command)(nil))
+var cobraCommandType = reflect.TypeFor[*cobra.Command]()
 
 // Kernel builds the Artisan from the command constructors among the
 // application's contributions and runs it — the command-dispatch half of the

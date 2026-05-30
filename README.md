@@ -16,7 +16,6 @@ A Laravel-inspired service-provider framework for Go services, built on
 A `ServiceProvider` may also implement any of these; the framework collects them automatically:
 
 | Interface | Declares | Collected by |
-|---|---|---|
 | `console.CommandProvider` | CLI commands | `Application.Boot` |
 | `queue/job.HandlerProvider` | job handlers | `worker` command |
 | `bus.ListenerProvider` | event listeners | `eventbus` command |
