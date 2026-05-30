@@ -1,9 +1,9 @@
-# foundation
+# beacon
 
 A Laravel-inspired service-provider framework for Go services, built on
 [uber/dig](https://github.com/uber-go/dig). Shared across multiple repositories.
 
-`module github.com/iVampireSP/foundation`
+`module github.com/iVampireSP/beacon`
 
 ## Core
 
