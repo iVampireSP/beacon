@@ -5,6 +5,7 @@ import (
 
 	"github.com/iVampireSP/beacon/config"
 	"github.com/iVampireSP/beacon/contracts"
+	"github.com/iVampireSP/beacon/support"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -12,7 +13,7 @@ type ServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) *ServiceProvider {
+func NewServiceProvider(app contracts.Application) support.Provider {
 	return &ServiceProvider{app: app}
 }
 

@@ -12,7 +12,7 @@ type ScheduleServiceProvider struct {
 	support.ServiceProvider
 }
 
-func NewScheduleServiceProvider(app contracts.Application) *ScheduleServiceProvider {
+func NewScheduleServiceProvider(app contracts.Application) support.Provider {
 	return &ScheduleServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}}
 }
 

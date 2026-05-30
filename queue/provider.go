@@ -13,7 +13,7 @@ type QueueServiceProvider struct {
 	app contracts.Application
 }
 
-func NewQueueServiceProvider(app contracts.Application) *QueueServiceProvider {
+func NewQueueServiceProvider(app contracts.Application) support.Provider {
 	return &QueueServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
 }
 

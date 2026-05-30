@@ -6,7 +6,6 @@ import (
 	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/foundation/bootstrap"
 	fconsole "github.com/iVampireSP/beacon/foundation/console"
-	"github.com/iVampireSP/beacon/support"
 )
 
 // Builder configures and creates an Application — the analog of Laravel's
@@ -16,8 +15,8 @@ import (
 // resources and providers become the ordered bootstrappers the application runs
 // on HandleCommand.
 type Builder struct {
-	providerFactory func(contracts.Application) []support.Provider
-	commandCtors    []any
+	providers    []contracts.ProviderConstructor
+	commandCtors []any
 
 	configFS  fs.FS
 	configDir string
@@ -56,10 +55,11 @@ func (b *Builder) WithTemplates(fsys fs.FS, dir string) *Builder {
 	return b
 }
 
-// WithProviders sets the factory that builds the service providers. The factory
-// receives the application so each provider can take it (new Provider($app)).
-func (b *Builder) WithProviders(factory func(contracts.Application) []support.Provider) *Builder {
-	b.providerFactory = factory
+// WithProviders sets the application's service-provider list — the analog of
+// Laravel's bootstrap/providers.php `return [...]`. Each entry is a constructor
+// the RegisterProviders bootstrapper calls with the application.
+func (b *Builder) WithProviders(providers []contracts.ProviderConstructor) *Builder {
+	b.providers = providers
 	return b
 }
 
@@ -97,7 +97,7 @@ func (b *Builder) bootstrappers() []bootstrap.Bootstrapper {
 		list = append(list, bootstrap.LoadTemplates{FS: b.templatesFS, Dir: b.templatesDir})
 	}
 	list = append(list,
-		bootstrap.RegisterProviders{Factory: b.providerFactory},
+		bootstrap.RegisterProviders{Providers: b.providers},
 		bootstrap.BootProviders{},
 	)
 	return list

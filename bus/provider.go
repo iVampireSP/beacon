@@ -13,7 +13,7 @@ type BusServiceProvider struct {
 	app contracts.Application
 }
 
-func NewBusServiceProvider(app contracts.Application) *BusServiceProvider {
+func NewBusServiceProvider(app contracts.Application) support.Provider {
 	return &BusServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
 }
 

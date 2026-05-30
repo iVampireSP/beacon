@@ -12,7 +12,6 @@ import (
 	"github.com/iVampireSP/beacon/config"
 	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/i18n"
-	"github.com/iVampireSP/beacon/support"
 	"github.com/iVampireSP/beacon/tmpl"
 )
 
@@ -57,15 +56,15 @@ func (b LoadTemplates) Bootstrap(contracts.Application) error {
 }
 
 // RegisterProviders registers the application's service providers — the analog of
-// Illuminate\Foundation\Bootstrap\RegisterProviders. The factory receives the
-// application so each provider can take it (new Provider($app)).
+// Illuminate\Foundation\Bootstrap\RegisterProviders. It calls each constructor
+// with the application (new Provider($app)) and registers the result.
 type RegisterProviders struct {
-	Factory func(contracts.Application) []support.Provider
+	Providers []contracts.ProviderConstructor
 }
 
 func (b RegisterProviders) Bootstrap(app contracts.Application) error {
-	if b.Factory != nil {
-		app.Register(b.Factory(app)...)
+	for _, newProvider := range b.Providers {
+		app.Register(newProvider(app))
 	}
 	return nil
 }

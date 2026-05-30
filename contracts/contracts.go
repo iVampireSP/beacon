@@ -34,6 +34,12 @@ type Application interface {
 	Shutdown() error
 }
 
+// ProviderConstructor builds a service provider from the application — the Go
+// analog of a class reference in Laravel's bootstrap/providers.php `return [...]`
+// (Go can't new up a class from a name, so the list holds constructors). The
+// RegisterProviders bootstrapper calls each with the application: new Provider($app).
+type ProviderConstructor = func(Application) support.Provider
+
 // ConsoleKernel is the console entry point — the analog of
 // Illuminate\Contracts\Console\Kernel. foundation.Application.HandleCommand
 // delegates to it so the application need not import the concrete kernel.

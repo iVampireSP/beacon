@@ -20,7 +20,7 @@ type DatabaseServiceProvider struct {
 	app contracts.Application
 }
 
-func NewDatabaseServiceProvider(app contracts.Application) *DatabaseServiceProvider {
+func NewDatabaseServiceProvider(app contracts.Application) support.Provider {
 	return &DatabaseServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
 }
 
