@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -17,6 +18,10 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
+
+// tracerName is this package's import path (OTel instrumentation scope), derived
+// rather than hardcoded so it survives a module rename.
+var tracerName = reflect.TypeOf(Queue{}).PkgPath()
 
 // asynqLogger routes asynq's internal logs through the application logger, so
 // all output is structured and tagged with component=asynq instead of asynq's
@@ -311,7 +316,7 @@ func (q *Queue) handleTask(ctx context.Context, name string, handler Handler, ta
 
 	// Make the job a span, child of the dispatcher's (propagated above), so the
 	// process step is visible in the trace and downstream spans nest under it.
-	ctx, span := otel.Tracer("github.com/iVampireSP/beacon/queue").Start(ctx,
+	ctx, span := otel.Tracer(tracerName).Start(ctx,
 		"queue.process "+name, trace.WithSpanKind(trace.SpanKindConsumer))
 	defer span.End()
 
