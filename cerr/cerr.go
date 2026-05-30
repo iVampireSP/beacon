@@ -182,8 +182,7 @@ func Validation(message string) *Error {
 
 // As is a convenience wrapper around errors.As for cerr.Error.
 func As(err error) (*Error, bool) {
-	var e *Error
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[*Error](err); ok {
 		return e, true
 	}
 	return nil, false
