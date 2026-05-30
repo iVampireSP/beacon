@@ -5,6 +5,7 @@ import (
 	"github.com/iVampireSP/beacon/cache"
 	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/cron"
+	"github.com/iVampireSP/beacon/grpcclient"
 	"github.com/iVampireSP/beacon/logger"
 	"github.com/iVampireSP/beacon/queue"
 	"github.com/iVampireSP/beacon/schedule"
@@ -28,4 +29,5 @@ var DefaultProviders = []contracts.ProviderConstructor{
 	queue.NewQueueServiceProvider,
 	bus.NewBusServiceProvider,
 	schedule.NewScheduleServiceProvider,
+	grpcclient.NewServiceProvider, // *Clients pool for calling peer services
 }
