@@ -7,7 +7,6 @@
 package bootstrap
 
 import (
-	"embed"
 	"io/fs"
 
 	"github.com/iVampireSP/beacon/config"
@@ -47,14 +46,14 @@ func (b LoadTranslations) Bootstrap(contracts.Application) error {
 	return i18n.InitWithFS(i18n.NewDefaultConfig(), b.FS, b.Dir)
 }
 
-// LoadTemplates parses the embedded templates.
+// LoadTemplates parses the templates under Dir in the given filesystem.
 type LoadTemplates struct {
-	FS embed.FS
+	FS  fs.FS
+	Dir string
 }
 
 func (b LoadTemplates) Bootstrap(contracts.Application) error {
-	tmpl.MustInitWithFS(b.FS)
-	return nil
+	return tmpl.InitWithFS(b.FS, b.Dir)
 }
 
 // RegisterProviders registers the application's service providers — the analog of

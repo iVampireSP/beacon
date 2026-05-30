@@ -1,7 +1,6 @@
 package foundation
 
 import (
-	"embed"
 	"io/fs"
 
 	"github.com/iVampireSP/beacon/contracts"
@@ -25,7 +24,8 @@ type Builder struct {
 	langFS    fs.FS
 	langDir   string
 
-	templatesFS  embed.FS
+	templatesFS  fs.FS
+	templatesDir string
 	hasTemplates bool
 }
 
@@ -49,9 +49,10 @@ func (b *Builder) WithLocale(fsys fs.FS, dir string) *Builder {
 	return b
 }
 
-// WithTemplates sets the embedded templates the LoadTemplates bootstrapper parses.
-func (b *Builder) WithTemplates(fsys embed.FS) *Builder {
-	b.templatesFS, b.hasTemplates = fsys, true
+// WithTemplates sets the filesystem and subdir the LoadTemplates bootstrapper
+// parses templates from.
+func (b *Builder) WithTemplates(fsys fs.FS, dir string) *Builder {
+	b.templatesFS, b.templatesDir, b.hasTemplates = fsys, dir, true
 	return b
 }
 
@@ -93,7 +94,7 @@ func (b *Builder) bootstrappers() []bootstrap.Bootstrapper {
 		list = append(list, bootstrap.LoadTranslations{FS: b.langFS, Dir: b.langDir})
 	}
 	if b.hasTemplates {
-		list = append(list, bootstrap.LoadTemplates{FS: b.templatesFS})
+		list = append(list, bootstrap.LoadTemplates{FS: b.templatesFS, Dir: b.templatesDir})
 	}
 	list = append(list,
 		bootstrap.RegisterProviders{Factory: b.providerFactory},

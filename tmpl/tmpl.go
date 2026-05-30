@@ -3,7 +3,6 @@ package tmpl
 import (
 	"bytes"
 	"context"
-	"embed"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -13,29 +12,38 @@ import (
 	"github.com/iVampireSP/beacon/i18n"
 )
 
-// defaultFS 通过 MustInitWithFS 注册的模板文件系统。
+// defaultFS 通过 InitWithFS 注册的模板文件系统。
 var (
-	defaultFS    embed.FS
+	defaultFS    fs.FS
 	defaultFSSet bool
 	// locale → slash-path → compiled template（如 "email/welcome"）
 	defaultTemplates map[string]map[string]*template.Template
 )
 
-// MustInitWithFS 注册模板 FS，必须在任何 Render() 调用前执行。
-func MustInitWithFS(templateFS embed.FS) {
+// InitWithFS 注册模板 FS（可为 embed.FS 或任意 fs.FS），dir 是模板根子目录
+// （如 "templates" 或 "resources/templates"）。必须在任何 Render() 前执行。与
+// config.InitWithFS / i18n.InitWithFS 同形（(fs.FS, dir)）。
+func InitWithFS(templateFS fs.FS, dir string) error {
 	defaultFS = templateFS
 	defaultFSSet = true
 
-	sub, err := fs.Sub(defaultFS, "templates")
+	sub, err := fs.Sub(templateFS, dir)
 	if err != nil {
-		panic(fmt.Sprintf("tmpl: failed to sub template fs: %v", err))
+		return fmt.Errorf("tmpl: sub template fs: %w", err)
 	}
-
 	templates, err := loadTemplates(sub)
 	if err != nil {
-		panic(fmt.Sprintf("tmpl: failed to load templates: %v", err))
+		return fmt.Errorf("tmpl: load templates: %w", err)
 	}
 	defaultTemplates = templates
+	return nil
+}
+
+// MustInitWithFS 是 InitWithFS 的 panic 版本。
+func MustInitWithFS(templateFS fs.FS, dir string) {
+	if err := InitWithFS(templateFS, dir); err != nil {
+		panic(err)
+	}
 }
 
 // Render 渲染指定模板，返回 subject 和 HTML body。
