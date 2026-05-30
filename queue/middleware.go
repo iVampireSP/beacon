@@ -7,7 +7,6 @@ import (
 
 	"github.com/iVampireSP/foundation/logger"
 	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 )
 
 // envelopeContextKey 用于在 context 中存储 envelope
@@ -33,7 +32,7 @@ func recovery() Middleware {
 			defer func() {
 				if r := recover(); r != nil {
 					err = fmt.Errorf("panic recovered: %v", r)
-					logger.Error("handler panic", zap.Any("panic", r))
+					logger.Error("handler panic", "panic", r)
 				}
 			}()
 			return next(ctx, payload)
@@ -55,16 +54,16 @@ func logging() Middleware {
 			if env != nil {
 				if err != nil {
 					logger.Warn("message processing failed",
-						zap.String("name", env.Name),
-						zap.String("id", env.ID),
-						zap.Duration("duration", duration),
-						zap.Error(err),
+						"name", env.Name,
+						"id", env.ID,
+						"duration", duration,
+						"error", err,
 					)
 				} else {
 					logger.Debug("message processed",
-						zap.String("name", env.Name),
-						zap.String("id", env.ID),
-						zap.Duration("duration", duration),
+						"name", env.Name,
+						"id", env.ID,
+						"duration", duration,
 					)
 				}
 			}
@@ -87,14 +86,14 @@ func Idempotent(redisClient redis.UniversalClient, ttl time.Duration) Middleware
 
 			ok, err := redisClient.SetNX(ctx, key, "1", ttl).Result()
 			if err != nil {
-				logger.Warn("idempotent check failed", zap.Error(err))
+				logger.Warn("idempotent check failed", "error", err)
 				return next(ctx, payload)
 			}
 
 			if !ok {
 				logger.Debug("message already processed, skipping",
-					zap.String("id", env.ID),
-					zap.String("name", env.Name),
+					"id", env.ID,
+					"name", env.Name,
 				)
 				return nil
 			}
@@ -133,10 +132,10 @@ func retryInfo() Middleware {
 			env := EnvelopeFromContext(ctx)
 			if env != nil && env.Attempt > 0 {
 				logger.Debug("processing retry",
-					zap.String("id", env.ID),
-					zap.String("name", env.Name),
-					zap.Int("attempt", env.Attempt),
-					zap.Int("max_retry", env.MaxRetry),
+					"id", env.ID,
+					"name", env.Name,
+					"attempt", env.Attempt,
+					"max_retry", env.MaxRetry,
 				)
 			}
 			return next(ctx, payload)

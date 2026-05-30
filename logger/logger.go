@@ -74,9 +74,16 @@ func New(config Config) (*zap.Logger, *zap.SugaredLogger) {
 	}
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
-	consoleEncoder := zapcore.NewConsoleEncoder(encoderConfig)
+	// Development: human-readable console output. Production: structured JSON so
+	// logs are easy to ship, store and parse by log aggregators.
+	var encoder zapcore.Encoder
+	if config.Debug {
+		encoder = zapcore.NewConsoleEncoder(encoderConfig)
+	} else {
+		encoder = zapcore.NewJSONEncoder(encoderConfig)
+	}
 	core := zapcore.NewCore(
-		consoleEncoder,
+		encoder,
 		zapcore.AddSync(os.Stdout),
 		getLogLevel(config.Level),
 	)

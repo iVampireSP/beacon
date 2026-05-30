@@ -20,7 +20,13 @@ func (p *ServiceProvider) Register() {
 	p.app.Singleton(NewTracing)
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *ServiceProvider) Boot() {
+	// Initialize the global tracing state from config so tracing.GetService
+	// works for every command. With tracing.enabled=false (the default) this
+	// records the "disabled" sentinel and GetService becomes a no-op; enabling
+	// it wires the OTLP exporters.
+	_ = p.app.Invoke(func(cfg Config) { _, _ = NewTracing(cfg) })
+}
 
 // NewDefaultConfig returns a Tracing Config populated from the application config.
 func NewDefaultConfig() Config {

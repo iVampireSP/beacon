@@ -11,7 +11,6 @@ import (
 	"github.com/iVampireSP/foundation/json"
 	"github.com/iVampireSP/foundation/logger"
 	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 )
 
 // Job 状态常量
@@ -75,7 +74,7 @@ func (t *tracker) recordPending(ctx context.Context, env *Envelope, topic string
 	pipe.ZAdd(ctx, allJobsKey(), redis.Z{Score: float64(now.Unix()), Member: env.ID})
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		logger.Debug("tracker: failed to record pending", zap.Error(err))
+		logger.Debug("tracker: failed to record pending", "error", err)
 	}
 }
 
@@ -96,7 +95,7 @@ func (t *tracker) recordProcessing(ctx context.Context, env *Envelope) {
 	pipe.ZAdd(ctx, allJobsKey(), redis.Z{Score: float64(now.Unix()), Member: env.ID})
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		logger.Debug("tracker: failed to record processing", zap.Error(err))
+		logger.Debug("tracker: failed to record processing", "error", err)
 	}
 }
 
@@ -118,7 +117,7 @@ func (t *tracker) recordSucceeded(ctx context.Context, env *Envelope) {
 	pipe.Publish(ctx, doneChannel(env.ID), JobStatusSucceeded)
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		logger.Debug("tracker: failed to record succeeded", zap.Error(err))
+		logger.Debug("tracker: failed to record succeeded", "error", err)
 	}
 }
 
@@ -139,7 +138,7 @@ func (t *tracker) recordRetrying(ctx context.Context, env *Envelope) {
 	pipe.ZAdd(ctx, allJobsKey(), redis.Z{Score: float64(now.Unix()), Member: env.ID})
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		logger.Debug("tracker: failed to record retrying", zap.Error(err))
+		logger.Debug("tracker: failed to record retrying", "error", err)
 	}
 }
 
@@ -168,7 +167,7 @@ func (t *tracker) recordDLQ(ctx context.Context, env *Envelope, jobErr error) {
 	pipe.Publish(ctx, doneChannel(env.ID), JobStatusDLQ)
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		logger.Debug("tracker: failed to record dlq", zap.Error(err))
+		logger.Debug("tracker: failed to record dlq", "error", err)
 	}
 }
 
@@ -188,7 +187,7 @@ func (t *tracker) startHeartbeat(ctx context.Context) {
 	pipe.Expire(ctx, workerKey, workerTTL)
 	pipe.ZAdd(ctx, workersKey(), redis.Z{Score: float64(time.Now().Unix()), Member: t.workerID})
 	if _, err := pipe.Exec(ctx); err != nil {
-		logger.Warn("tracker: failed to register worker", zap.Error(err))
+		logger.Warn("tracker: failed to register worker", "error", err)
 	}
 
 	go func() {
@@ -208,7 +207,7 @@ func (t *tracker) startHeartbeat(ctx context.Context) {
 				pipe.Expire(ctx, workerKey, workerTTL)
 				pipe.ZAdd(ctx, workersKey(), redis.Z{Score: float64(now), Member: t.workerID})
 				if _, err := pipe.Exec(ctx); err != nil {
-					logger.Debug("tracker: heartbeat failed", zap.Error(err))
+					logger.Debug("tracker: heartbeat failed", "error", err)
 				}
 			}
 		}

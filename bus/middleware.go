@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/iVampireSP/foundation/logger"
-	"go.uber.org/zap"
 )
 
 type envelopeContextKey struct{}
@@ -28,7 +27,7 @@ func recovery() Middleware {
 			defer func() {
 				if r := recover(); r != nil {
 					err = fmt.Errorf("panic recovered: %v", r)
-					logger.Error("event handler panic", zap.Any("panic", r))
+					logger.Error("event handler panic", "panic", r)
 				}
 			}()
 			return next(ctx, payload)
@@ -46,16 +45,16 @@ func logging() Middleware {
 			if env != nil {
 				if err != nil {
 					logger.Warn("event processing failed",
-						zap.String("name", env.Name),
-						zap.String("id", env.ID),
-						zap.Duration("duration", duration),
-						zap.Error(err),
+						"name", env.Name,
+						"id", env.ID,
+						"duration", duration,
+						"error", err,
 					)
 				} else {
 					logger.Debug("event processed",
-						zap.String("name", env.Name),
-						zap.String("id", env.ID),
-						zap.Duration("duration", duration),
+						"name", env.Name,
+						"id", env.ID,
+						"duration", duration,
 					)
 				}
 			}

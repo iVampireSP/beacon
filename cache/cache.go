@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/iVampireSP/foundation/logger"
 	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 )
 
 // RedisConfig Redis 连接配置。
@@ -21,7 +21,7 @@ type RedisConfig struct {
 
 // NewCache 根据配置创建 Redis 客户端。
 // 支持单机模式和集群模式，通过 ClusterAddrs 是否为空自动选择。
-func NewCache(cfg RedisConfig, logger *zap.SugaredLogger) redis.UniversalClient {
+func NewCache(cfg RedisConfig) redis.UniversalClient {
 	var client redis.UniversalClient
 
 	if cfg.ClusterAddrs != "" {
@@ -51,14 +51,10 @@ func NewCache(cfg RedisConfig, logger *zap.SugaredLogger) redis.UniversalClient 
 	}
 
 	if err := redisotel.InstrumentTracing(client); err != nil {
-		if logger != nil {
-			logger.Errorw("failed to instrument Redis tracing", "error", err)
-		}
+		logger.Error("failed to instrument Redis tracing", "error", err)
 	}
 	if err := redisotel.InstrumentMetrics(client); err != nil {
-		if logger != nil {
-			logger.Errorw("failed to instrument Redis metrics", "error", err)
-		}
+		logger.Error("failed to instrument Redis metrics", "error", err)
 	}
 
 	return client

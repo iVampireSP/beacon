@@ -14,8 +14,18 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
-	"go.uber.org/zap"
 )
+
+// asynqLogger routes asynq's internal logs through the application logger, so
+// all output is structured and tagged with component=asynq instead of asynq's
+// own plain-text format.
+type asynqLogger struct{}
+
+func (asynqLogger) Debug(args ...any) { logger.Debug(fmt.Sprint(args...), "component", "asynq") }
+func (asynqLogger) Info(args ...any)  { logger.Info(fmt.Sprint(args...), "component", "asynq") }
+func (asynqLogger) Warn(args ...any)  { logger.Warn(fmt.Sprint(args...), "component", "asynq") }
+func (asynqLogger) Error(args ...any) { logger.Error(fmt.Sprint(args...), "component", "asynq") }
+func (asynqLogger) Fatal(args ...any) { logger.Error(fmt.Sprint(args...), "component", "asynq") }
 
 var (
 	ErrEncodeMessage  = cerr.Internal("failed to encode queue message").WithCode("JOB_ENCODE_MESSAGE")
@@ -200,6 +210,7 @@ func (q *Queue) Run(ctx context.Context) error {
 	}
 
 	q.server = asynq.NewServer(buildAsynqRedisConnOpt(q.redisCfg), asynq.Config{
+		Logger:         asynqLogger{},
 		Concurrency:    16,
 		Queues:         queues,
 		RetryDelayFunc: q.retryDelay,
@@ -376,15 +387,15 @@ func (q *Queue) onTaskError(ctx context.Context, task *asynq.Task, err error) {
 	retried, retriedOK := asynq.GetRetryCount(ctx)
 	maxRetry, maxRetryOK := asynq.GetMaxRetry(ctx)
 	if !retriedOK || !maxRetryOK {
-		logger.Warn("asynq task failed", zap.String("type", task.Type()), zap.Error(err))
+		logger.Warn("asynq task failed", "type", task.Type(), "error", err)
 		return
 	}
 	logger.Warn("asynq task failed",
-		zap.String("type", task.Type()),
-		zap.Int("retried", retried),
-		zap.Int("max_retry", maxRetry),
-		zap.Bool("retry_exhausted", retried >= maxRetry),
-		zap.Error(err),
+		"type", task.Type(),
+		"retried", retried,
+		"max_retry", maxRetry,
+		"retry_exhausted", retried >= maxRetry,
+		"error", err,
 	)
 }
 
