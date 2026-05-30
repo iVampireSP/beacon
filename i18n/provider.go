@@ -5,7 +5,7 @@ import "github.com/iVampireSP/foundation/config"
 // NewDefaultConfig returns an i18n Config populated from the application config.
 func NewDefaultConfig() Config {
 	return Config{
-		DefaultLocale:  config.String("app.locale", "zh_CN"),
+		DefaultLocale:  config.String("app.locale", "en"),
 		FallbackLocale: config.String("app.fallback_locale", "en"),
 	}
 }
