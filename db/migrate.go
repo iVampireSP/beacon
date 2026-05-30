@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/iVampireSP/beacon/cache"
-	"github.com/iVampireSP/beacon/foundation"
+	"github.com/iVampireSP/beacon/contracts"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +32,7 @@ func MustInitWithFS(migrationsFS embed.FS) {
 
 // Migrate provides database migration commands.
 type Migrate struct {
-	app    *foundation.Application
+	app    contracts.Application
 	db     *sql.DB
 	locker *cache.Locker
 }
@@ -40,7 +40,7 @@ type Migrate struct {
 // NewMigrate builds the migrate command tree. app is injected by the container;
 // the db pool and locker are resolved lazily in PersistentPreRunE so unrelated
 // commands don't open a database connection.
-func NewMigrate(app *foundation.Application) *cobra.Command {
+func NewMigrate(app contracts.Application) *cobra.Command {
 	return (&Migrate{app: app}).Command()
 }
 

@@ -96,8 +96,11 @@ func (b *Builder) bootstrappers() []bootstrap.Bootstrapper {
 	if b.hasTemplates {
 		list = append(list, bootstrap.LoadTemplates{FS: b.templatesFS, Dir: b.templatesDir})
 	}
+	// Built-in framework providers first, then the app's own — mirroring how
+	// Laravel merges ServiceProvider::defaultProviders() with the app's list.
+	providers := append(append([]contracts.ProviderConstructor{}, DefaultProviders...), b.providers...)
 	list = append(list,
-		bootstrap.RegisterProviders{Providers: b.providers},
+		bootstrap.RegisterProviders{Providers: providers},
 		bootstrap.BootProviders{},
 	)
 	return list

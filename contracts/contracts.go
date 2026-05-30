@@ -26,6 +26,9 @@ type Application interface {
 	Invoke(fn any) error
 	// Register registers (and immediately Register()s) service providers.
 	Register(providers ...support.Provider)
+	// Contributions returns everything providers pushed via Add, for a runtime
+	// (worker/eventbus/scheduler) to claim the kinds it understands.
+	Contributions() []any
 	// Boot runs every registered provider's Boot phase (once).
 	Boot() error
 	// OnShutdown registers a cleanup callback, run in reverse order on Shutdown.

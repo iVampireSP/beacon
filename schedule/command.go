@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/iVampireSP/beacon/cache"
-	"github.com/iVampireSP/beacon/foundation"
+	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/logger"
 	jobqueue "github.com/iVampireSP/beacon/queue"
 	"github.com/iVampireSP/beacon/tracing"
@@ -20,7 +20,7 @@ import (
 
 // schedulerCommand holds the scheduler command's dependencies.
 type schedulerCommand struct {
-	app      *foundation.Application
+	app      contracts.Application
 	cron     *cron.Cron
 	locker   *cache.Locker
 	mq       *jobqueue.Queue
@@ -30,7 +30,7 @@ type schedulerCommand struct {
 // NewSchedulerCommand builds the scheduler command. app is injected by the
 // container; cron, lock, queue and cronjobs are resolved lazily in
 // PersistentPreRunE so unrelated commands don't spin up the scheduler.
-func NewSchedulerCommand(app *foundation.Application) *cobra.Command {
+func NewSchedulerCommand(app contracts.Application) *cobra.Command {
 	return (&schedulerCommand{app: app}).Command()
 }
 

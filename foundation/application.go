@@ -41,7 +41,11 @@ type Application struct {
 // *foundation.Application (mirroring Laravel binding the app as a singleton).
 func newApplication() *Application {
 	app := &Application{Container: container.NewContainer()}
+	// Register the app under both its concrete type and the contracts.Application
+	// interface, so a command constructor can inject either (the beacon runtimes
+	// — worker/eventbus/scheduler — take the interface to stay off foundation).
 	_ = app.Singleton(func() *Application { return app })
+	_ = app.Singleton(func() contracts.Application { return app })
 	return app
 }
 

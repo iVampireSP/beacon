@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iVampireSP/beacon/foundation"
+	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/logger"
 	"github.com/iVampireSP/beacon/tracing"
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ import (
 
 // EventBus holds EventBus service dependencies.
 type EventBus struct {
-	app       *foundation.Application
+	app       contracts.Application
 	bus       *Bus
 	listeners []Listener
 }
@@ -24,7 +24,7 @@ type EventBus struct {
 // NewEventBus builds the eventbus command. app is injected by the container;
 // the bus and listeners are resolved lazily in PersistentPreRunE so unrelated
 // commands don't open a bus connection.
-func NewEventBus(app *foundation.Application) *cobra.Command {
+func NewEventBus(app contracts.Application) *cobra.Command {
 	return (&EventBus{app: app}).Command()
 }
 
