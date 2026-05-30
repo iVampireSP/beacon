@@ -2,12 +2,12 @@ package keystore
 
 // Config holds the key definitions loaded from configuration.
 type Config struct {
-	Keys map[string]KeyConfig
+	Keys map[string]KeyConfig `yaml:"keys"`
 }
 
 // KeyConfig defines a single named key.
 type KeyConfig struct {
-	Type       string // "rsa" or "ecdsa"
-	PrivateKey string // PEM or base64-encoded
-	PublicKey  string // PEM or base64-encoded
+	Type       string `yaml:"type"`        // "rsa" or "ecdsa"
+	PrivateKey string `yaml:"private_key"` // PEM or base64-encoded
+	PublicKey  string `yaml:"public_key"`  // PEM or base64-encoded
 }

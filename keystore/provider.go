@@ -20,27 +20,13 @@ func (p *ServiceProvider) Register() {
 
 func (p *ServiceProvider) Boot() {}
 
-// NewDefaultConfig returns a KeyStore Config populated from the application config.
+// NewDefaultConfig returns a KeyStore Config populated from the application
+// config, unmarshalling the keystore subtree directly (the keys map has
+// arbitrary names, so yaml tags do the work field-by-field extraction used to).
 func NewDefaultConfig() Config {
-	keysRaw := config.Map("keystore.keys")
-	keys := make(map[string]KeyConfig, len(keysRaw))
-	for name, v := range keysRaw {
-		kc, ok := v.(map[string]any)
-		if !ok {
-			continue
-		}
-		keys[name] = KeyConfig{
-			Type:       stringVal(kc, "type"),
-			PrivateKey: stringVal(kc, "private_key"),
-			PublicKey:  stringVal(kc, "public_key"),
-		}
+	var cfg Config
+	if err := config.Unmarshal("keystore", &cfg); err != nil {
+		panic(err)
 	}
-	return Config{Keys: keys}
-}
-
-func stringVal(m map[string]any, key string) string {
-	if v, ok := m[key].(string); ok {
-		return v
-	}
-	return ""
+	return cfg
 }
