@@ -14,12 +14,12 @@ type QueueServiceProvider struct {
 }
 
 func NewQueueServiceProvider(app contracts.Application) support.Provider {
-	return &QueueServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
+	return &QueueServiceProvider{ServiceProvider: support.ServiceProvider{Registry: app}, app: app}
 }
 
 func (p *QueueServiceProvider) Register() {
 	p.app.Singleton(NewDefaultConfig)
 	p.app.Singleton(NewDefaultRedisConfig)
 	p.app.Singleton(NewQueue)
-	p.AddCommand(NewWorker)
+	p.Add(NewWorker)
 }

@@ -5,23 +5,14 @@ import (
 	"testing"
 )
 
-// capable is a local capability interface used to test ProvidersImplementing.
-type capable interface{ Capability() }
+type recordProvider struct{}
 
-type capableProvider struct{}
-
-func (capableProvider) Register()   {}
-func (capableProvider) Boot()       {}
-func (capableProvider) Capability() {}
-
-type plainProvider struct{}
-
-func (plainProvider) Register() {}
-func (plainProvider) Boot()     {}
+func (recordProvider) Register() {}
+func (recordProvider) Boot()     {}
 
 func TestBootRunsAllProviders(t *testing.T) {
 	app := newApplication()
-	app.Register(capableProvider{}, plainProvider{})
+	app.Register(recordProvider{}, recordProvider{})
 
 	if err := app.Boot(); err != nil {
 		t.Fatalf("Boot returned error: %v", err)
@@ -31,12 +22,12 @@ func TestBootRunsAllProviders(t *testing.T) {
 	}
 }
 
-func TestProvidersImplementingFiltersByCapability(t *testing.T) {
+func TestAddCollectsContributions(t *testing.T) {
 	app := newApplication()
-	app.Register(capableProvider{}, plainProvider{})
-
-	if got := ProvidersImplementing[capable](app); len(got) != 1 {
-		t.Fatalf("expected exactly 1 capable provider, got %d", len(got))
+	app.Add("a", 1)
+	app.Add(struct{}{})
+	if got := len(app.Contributions()); got != 3 {
+		t.Fatalf("Contributions = %d, want 3", got)
 	}
 }
 

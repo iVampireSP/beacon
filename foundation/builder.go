@@ -64,7 +64,7 @@ func (b *Builder) WithProviders(providers []contracts.ProviderConstructor) *Buil
 }
 
 // WithCommands registers console-command constructors directly on the kernel, in
-// addition to any a provider pushes via AddCommand.
+// addition to any a provider pushes via Add.
 func (b *Builder) WithCommands(constructors ...any) *Builder {
 	b.commandCtors = append(b.commandCtors, constructors...)
 	return b
@@ -77,7 +77,7 @@ func (b *Builder) WithCommands(constructors ...any) *Builder {
 func (b *Builder) Create() *Application {
 	app := newApplication()
 	app.consoleKernel = fconsole.NewKernel(app.Container)
-	app.RegisterCommands(b.commandCtors...)
+	app.Add(b.commandCtors...)
 	app.bootstrappers = b.bootstrappers()
 	return app
 }

@@ -28,6 +28,7 @@ type Application struct {
 	*container.Container
 	providers        []support.Provider
 	bootstrappers    []bootstrap.Bootstrapper
+	contributions    []any
 	bootingCallbacks []func(*Application)
 	bootedCallbacks  []func(*Application)
 	shutdownFns      []func() error
@@ -108,11 +109,18 @@ func (app *Application) Providers() []support.Provider {
 	return app.providers
 }
 
-// RegisterCommands forwards command constructors to the console kernel, so
-// *Application satisfies support.Kernel and a provider's AddCommand reaches the
-// kernel through the application.
-func (app *Application) RegisterCommands(constructors ...any) {
-	app.consoleKernel.RegisterCommands(constructors...)
+// Add records a provider's contributions (command constructors, job handlers,
+// event listeners, cron jobs) in one bucket — *Application is the single
+// support.Registry. Each runtime later claims the kinds it understands from
+// Contributions(); the console kernel picks out the command constructors.
+func (app *Application) Add(contributions ...any) {
+	app.contributions = append(app.contributions, contributions...)
+}
+
+// Contributions returns everything providers have added, for the runtimes
+// (worker/eventbus/scheduler) to filter by their concrete contract type.
+func (app *Application) Contributions() []any {
+	return app.contributions
 }
 
 // bootstrap runs the ordered bootstrappers (load config, register + boot
@@ -146,7 +154,7 @@ func (app *Application) HandleCommand(use, short string) (code int) {
 		logger.Error("bootstrap failed", "error", err)
 		return 1
 	}
-	if err := app.consoleKernel.Handle(use, short); err != nil {
+	if err := app.consoleKernel.Handle(use, short, app.contributions); err != nil {
 		return 1
 	}
 	return 0
@@ -166,18 +174,4 @@ func (app *Application) Shutdown() error {
 		}
 	}
 	return errors.Join(errs...)
-}
-
-// ProvidersImplementing returns all registered providers that satisfy capability
-// interface T (e.g. job.HandlerProvider, bus.ListenerProvider,
-// schedule.CronProvider), letting a subsystem gather contributions from every
-// provider without a central registration list.
-func ProvidersImplementing[T any](app *Application) []T {
-	var out []T
-	for _, p := range app.providers {
-		if t, ok := any(p).(T); ok {
-			out = append(out, t)
-		}
-	}
-	return out
 }

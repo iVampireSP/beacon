@@ -40,10 +40,12 @@ func (w *Worker) Command() *cobra.Command {
 			}); err != nil {
 				return err
 			}
-			// Collect job handlers contributed by any provider implementing
-			// job.HandlerProvider, instead of one aggregated dig binding.
-			for _, hp := range foundation.ProvidersImplementing[job.HandlerProvider](w.app) {
-				w.handlers = append(w.handlers, hp.Jobs()...)
+			// Claim the job handlers from the application's single contribution
+			// bucket (providers pushed them with p.Add).
+			for _, c := range w.app.Contributions() {
+				if h, ok := c.(job.Handler); ok {
+					w.handlers = append(w.handlers, h)
+				}
 			}
 			return nil
 		},

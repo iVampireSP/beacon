@@ -14,11 +14,11 @@ type BusServiceProvider struct {
 }
 
 func NewBusServiceProvider(app contracts.Application) support.Provider {
-	return &BusServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
+	return &BusServiceProvider{ServiceProvider: support.ServiceProvider{Registry: app}, app: app}
 }
 
 func (p *BusServiceProvider) Register() {
 	p.app.Singleton(NewDefaultConfig)
 	p.app.Singleton(NewBus)
-	p.AddCommand(NewEventBus)
+	p.Add(NewEventBus)
 }

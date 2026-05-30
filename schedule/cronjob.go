@@ -16,9 +16,5 @@ type CronJob interface {
 	Run(ctx context.Context) error
 }
 
-// CronProvider 是 ServiceProvider 的可选能力接口。
-// 实现它的 provider 声明自己拥有的定时任务；scheduler 命令启动时跨所有
-// provider 收集这些任务并注册到调度器。多个 provider 可各自贡献任务。
-type CronProvider interface {
-	CronJobs() []CronJob
-}
+// A provider declares its cron jobs by pushing them with support.ServiceProvider.Add;
+// the scheduler command claims every CronJob from the application's contributions.

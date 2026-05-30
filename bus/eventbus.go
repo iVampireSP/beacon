@@ -38,10 +38,12 @@ func (e *EventBus) Command() *cobra.Command {
 			}); err != nil {
 				return err
 			}
-			// Collect listeners contributed by any provider implementing
-			// ListenerProvider, instead of one aggregated dig binding.
-			for _, lp := range foundation.ProvidersImplementing[ListenerProvider](e.app) {
-				e.listeners = append(e.listeners, lp.Listeners()...)
+			// Claim the listeners from the application's single contribution
+			// bucket (providers pushed them with p.Add).
+			for _, c := range e.app.Contributions() {
+				if l, ok := c.(Listener); ok {
+					e.listeners = append(e.listeners, l)
+				}
 			}
 			return nil
 		},

@@ -9,22 +9,23 @@ type Provider interface {
 	Boot()
 }
 
-// Kernel is the command-registrar capability a ServiceProvider needs to declare
-// its console commands. It is declared here (a tiny interface) rather than
-// imported from the foundation/console kernel so support stays a pure leaf and
-// never imports upward — dependency inversion. contracts.Application satisfies
-// it (forwarding RegisterCommands to its console kernel), so a provider that
-// holds the application can push commands through it.
-type Kernel interface {
-	RegisterCommands(constructors ...any)
+// Registry is the application's single contribution sink. A ServiceProvider
+// pushes ALL its contributions — console commands, queue jobs, event listeners,
+// cron jobs — through the one Add method; there is no per-kind registration. The
+// items are `any` so this stays a pure leaf: each runtime claims what it
+// understands (the console kernel builds the command constructors; the
+// worker/eventbus/scheduler type-assert queue/job.Handler, bus.Listener,
+// schedule.CronJob). *foundation.Application satisfies it.
+type Registry interface {
+	Add(contributions ...any)
 }
 
 // ServiceProvider is the embeddable base, mirroring Illuminate\Support\ServiceProvider.
-// It holds the console kernel so a provider can declare its commands with
-// AddCommand — the analog of Laravel's $this->commands([...]). Concrete providers
+// It holds the Registry so a provider declares everything with one Add — the
+// generalized analog of Laravel's $this->commands([...]). Concrete providers
 // embed it and override Register/Boot as needed.
 type ServiceProvider struct {
-	Kernel Kernel
+	Registry Registry
 }
 
 // Register binds services into the container. The embedded default is a no-op;
@@ -35,9 +36,9 @@ func (ServiceProvider) Register() {}
 // no-op; concrete providers override it.
 func (ServiceProvider) Boot() {}
 
-// AddCommand registers console commands by their constructors with the kernel,
-// which resolves each through the container (constructor injection). This is the
-// analog of Laravel's ServiceProvider::commands().
-func (p ServiceProvider) AddCommand(commands ...any) {
-	p.Kernel.RegisterCommands(commands...)
+// Add declares the provider's contributions — command constructors, job
+// handlers, event listeners, cron jobs — through the single registry. Each
+// runtime picks up the kinds it understands.
+func (p ServiceProvider) Add(contributions ...any) {
+	p.Registry.Add(contributions...)
 }

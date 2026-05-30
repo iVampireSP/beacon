@@ -5,19 +5,24 @@
 package console
 
 import (
+	"reflect"
+
 	artisan "github.com/iVampireSP/beacon/console"
 	"github.com/iVampireSP/beacon/container"
+	"github.com/spf13/cobra"
 )
 
-// Kernel builds the Artisan with every registered command and runs it — the
-// command-dispatch half of the console entry point. Bootstrapping (load config,
-// register + boot providers) and termination (Shutdown) are orchestrated by
-// foundation.Application.HandleCommand around this call, mirroring Laravel's
-// handleCommand → kernel.handle → terminate. The kernel needs only the container
-// (to resolve commands), so it stays decoupled from the application.
+// cobraCommandType is *cobra.Command, used to pick command constructors out of
+// the application's single contribution bucket.
+var cobraCommandType = reflect.TypeOf((*cobra.Command)(nil))
+
+// Kernel builds the Artisan from the command constructors among the
+// application's contributions and runs it — the command-dispatch half of the
+// console entry point. Bootstrapping and termination are orchestrated by
+// foundation.Application.HandleCommand around this call. The kernel needs only
+// the container (to resolve commands), so it stays decoupled from the application.
 type Kernel struct {
-	container        *container.Container
-	commandFactories []any
+	container *container.Container
 }
 
 // NewKernel creates a console kernel over the DI container.
@@ -25,23 +30,29 @@ func NewKernel(c *container.Container) *Kernel {
 	return &Kernel{container: c}
 }
 
-// RegisterCommands records command constructors to be built when the kernel
-// runs. Providers call this through support.ServiceProvider.AddCommand (forwarded
-// by foundation.Application.RegisterCommands).
-func (k *Kernel) RegisterCommands(constructors ...any) {
-	k.commandFactories = append(k.commandFactories, constructors...)
-}
-
-// Handle builds the Artisan with every registered command and executes it. It is
-// called after the application has been bootstrapped, so all provider-pushed
-// commands are already registered. The returned error is cobra's (already
-// rendered to stderr); HandleCommand maps it to the process exit code.
-func (k *Kernel) Handle(use, short string) error {
+// Handle builds every command constructor among contributions and executes the
+// Artisan. A contribution is a command constructor when it is a function
+// returning *cobra.Command; everything else (job handlers, listeners, cron jobs)
+// is claimed by other runtimes and ignored here. The returned error is cobra's
+// (already rendered); HandleCommand maps it to the process exit code.
+func (k *Kernel) Handle(use, short string, contributions []any) error {
 	app := artisan.NewApplication(k.container, use, short)
-	for _, ctor := range k.commandFactories {
-		if err := app.Add(ctor); err != nil {
+	for _, c := range contributions {
+		if !isCommandConstructor(c) {
+			continue
+		}
+		if err := app.Add(c); err != nil {
 			return err
 		}
 	}
 	return app.Run()
+}
+
+// isCommandConstructor reports whether c is a function returning *cobra.Command.
+func isCommandConstructor(c any) bool {
+	t := reflect.TypeOf(c)
+	if t == nil || t.Kind() != reflect.Func || t.NumOut() != 1 {
+		return false
+	}
+	return t.Out(0) == cobraCommandType
 }

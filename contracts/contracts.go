@@ -15,6 +15,9 @@ import "github.com/iVampireSP/beacon/support"
 // satisfies it. Commands that need generics (e.g. ProvidersImplementing) take the
 // concrete type instead; everything else depends on this interface.
 type Application interface {
+	// Registry is the contribution sink (RegisterCommands/Jobs/Listeners/CronJobs)
+	// a provider pushes to via support.ServiceProvider.Add*.
+	support.Registry
 	// Singleton registers a constructor whose result is built once and cached.
 	Singleton(constructor any) error
 	// Invoke resolves the function's parameters from the container and calls it,
@@ -23,9 +26,6 @@ type Application interface {
 	Invoke(fn any) error
 	// Register registers (and immediately Register()s) service providers.
 	Register(providers ...support.Provider)
-	// RegisterCommands records console-command constructors (a provider pushes
-	// commands here via support.ServiceProvider.AddCommand).
-	RegisterCommands(constructors ...any)
 	// Boot runs every registered provider's Boot phase (once).
 	Boot() error
 	// OnShutdown registers a cleanup callback, run in reverse order on Shutdown.
@@ -42,11 +42,11 @@ type ProviderConstructor = func(Application) support.Provider
 
 // ConsoleKernel is the console entry point — the analog of
 // Illuminate\Contracts\Console\Kernel. foundation.Application.HandleCommand
-// delegates to it so the application need not import the concrete kernel.
+// delegates to it so the application need not import the concrete kernel. The
+// command constructors are passed in (the application picked them out of the
+// single contribution registry).
 type ConsoleKernel interface {
-	// Handle bootstraps the application and runs the CLI under the given root
-	// command identity, returning the command's error (nil on success).
-	Handle(use, short string) error
-	// RegisterCommands records command constructors to build when Handle runs.
-	RegisterCommands(constructors ...any)
+	// Handle builds the given command constructors and runs the CLI under the
+	// root command identity, returning the command's error (nil on success).
+	Handle(use, short string, commands []any) error
 }

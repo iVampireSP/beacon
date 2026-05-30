@@ -21,7 +21,7 @@ type DatabaseServiceProvider struct {
 }
 
 func NewDatabaseServiceProvider(app contracts.Application) support.Provider {
-	return &DatabaseServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
+	return &DatabaseServiceProvider{ServiceProvider: support.ServiceProvider{Registry: app}, app: app}
 }
 
 func (p *DatabaseServiceProvider) Register() {
@@ -48,5 +48,5 @@ func (p *DatabaseServiceProvider) Register() {
 		return nil
 	})
 
-	p.AddCommand(NewMigrate)
+	p.Add(NewMigrate)
 }

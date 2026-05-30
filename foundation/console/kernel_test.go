@@ -3,20 +3,33 @@ package console
 import (
 	"testing"
 
-	"github.com/iVampireSP/beacon/container"
 	"github.com/spf13/cobra"
 )
 
-// TestKernelRegisterCommandsAccumulates verifies pushed constructors accumulate
-// for the kernel to hand to the Artisan on Handle.
-func TestKernelRegisterCommandsAccumulates(t *testing.T) {
-	k := NewKernel(container.NewContainer())
-	k.RegisterCommands(func() *cobra.Command { return &cobra.Command{Use: "a"} })
-	k.RegisterCommands(
-		func() *cobra.Command { return &cobra.Command{Use: "b"} },
-		func() *cobra.Command { return &cobra.Command{Use: "c"} },
-	)
-	if len(k.commandFactories) != 3 {
-		t.Fatalf("commandFactories = %d, want 3", len(k.commandFactories))
+type fakeJob struct{}
+
+func (fakeJob) JobName() string { return "x" }
+
+// TestIsCommandConstructor verifies the kernel picks command constructors
+// (funcs returning *cobra.Command) out of the mixed contribution bucket and
+// ignores work-unit values.
+func TestIsCommandConstructor(t *testing.T) {
+	cases := []struct {
+		name string
+		item any
+		want bool
+	}{
+		{"no-arg ctor", func() *cobra.Command { return nil }, true},
+		{"dep ctor", func(int) *cobra.Command { return nil }, true},
+		{"job value", fakeJob{}, false},
+		{"plain func", func() {}, false},
+		{"wrong return", func() int { return 0 }, false},
+		{"nil", nil, false},
+		{"string", "serve", false},
+	}
+	for _, c := range cases {
+		if got := isCommandConstructor(c.item); got != c.want {
+			t.Errorf("%s: isCommandConstructor = %v, want %v", c.name, got, c.want)
+		}
 	}
 }

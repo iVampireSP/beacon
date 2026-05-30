@@ -46,10 +46,12 @@ func (s *schedulerCommand) Command() *cobra.Command {
 			}); err != nil {
 				return err
 			}
-			// Collect cronjobs contributed by any provider implementing
-			// CronProvider, instead of one aggregated dig binding.
-			for _, cp := range foundation.ProvidersImplementing[CronProvider](s.app) {
-				s.cronjobs = append(s.cronjobs, cp.CronJobs()...)
+			// Claim the cron jobs from the application's single contribution
+			// bucket (providers pushed them with p.Add).
+			for _, c := range s.app.Contributions() {
+				if cj, ok := c.(CronJob); ok {
+					s.cronjobs = append(s.cronjobs, cj)
+				}
 			}
 			return nil
 		},

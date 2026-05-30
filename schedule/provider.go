@@ -13,9 +13,9 @@ type ScheduleServiceProvider struct {
 }
 
 func NewScheduleServiceProvider(app contracts.Application) support.Provider {
-	return &ScheduleServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}}
+	return &ScheduleServiceProvider{ServiceProvider: support.ServiceProvider{Registry: app}}
 }
 
 func (p *ScheduleServiceProvider) Register() {
-	p.AddCommand(NewSchedulerCommand)
+	p.Add(NewSchedulerCommand)
 }
