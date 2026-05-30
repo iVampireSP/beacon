@@ -8,10 +8,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/logger"
-	"github.com/iVampireSP/foundation/queue/job"
-	"github.com/iVampireSP/foundation/tracing"
+	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/logger"
+	"github.com/iVampireSP/beacon/queue/job"
+	"github.com/iVampireSP/beacon/tracing"
 
 	"github.com/spf13/cobra"
 )

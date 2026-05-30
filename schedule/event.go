@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iVampireSP/foundation/logger"
+	"github.com/iVampireSP/beacon/logger"
 )
 
 // Event 代表一个调度事件，支持链式配置

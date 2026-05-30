@@ -3,7 +3,7 @@ package container
 import (
 	"errors"
 
-	"github.com/iVampireSP/foundation/support"
+	"github.com/iVampireSP/beacon/support"
 )
 
 // Application manages the lifecycle of service providers over the DI container.

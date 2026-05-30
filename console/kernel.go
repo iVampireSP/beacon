@@ -1,7 +1,7 @@
 package console
 
 import (
-	"github.com/iVampireSP/foundation/container"
+	"github.com/iVampireSP/beacon/container"
 )
 
 // Kernel is the console kernel — the bootstrap orchestrator for the CLI entry

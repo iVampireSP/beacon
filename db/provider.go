@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 
-	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/support"
+	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/support"
 )
 
 // DatabaseServiceProvider wires the PostgreSQL connection pool (*sql.DB) and

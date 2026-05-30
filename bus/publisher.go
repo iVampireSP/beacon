@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/iVampireSP/foundation/cerr"
-	"github.com/iVampireSP/foundation/json"
+	"github.com/iVampireSP/beacon/cerr"
+	"github.com/iVampireSP/beacon/json"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 )

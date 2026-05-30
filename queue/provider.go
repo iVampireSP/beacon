@@ -1,8 +1,8 @@
 package queue
 
 import (
-	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/support"
+	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/support"
 )
 
 // QueueServiceProvider wires the job queue and owns the `worker` command,

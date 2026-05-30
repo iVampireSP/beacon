@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/iVampireSP/foundation/logger"
+	"github.com/iVampireSP/beacon/logger"
 )
 
 // MetricsConfig holds metrics server configuration.

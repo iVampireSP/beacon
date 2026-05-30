@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"unicode"
 
-	"github.com/iVampireSP/foundation/cerr"
+	"github.com/iVampireSP/beacon/cerr"
 )
 
 var (

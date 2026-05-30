@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/iVampireSP/foundation/config"
+	"github.com/iVampireSP/beacon/config"
 )
 
 // confirmDangerousOperation prompts for confirmation in non-development environments.

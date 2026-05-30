@@ -3,7 +3,7 @@ package console
 import (
 	"testing"
 
-	"github.com/iVampireSP/foundation/container"
+	"github.com/iVampireSP/beacon/container"
 	"github.com/spf13/cobra"
 )
 

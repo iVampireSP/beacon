@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iVampireSP/foundation/lock"
+	"github.com/iVampireSP/beacon/lock"
 )
 
 // Mutex 分布式锁接口

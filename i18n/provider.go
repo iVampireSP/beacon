@@ -1,6 +1,6 @@
 package i18n
 
-import "github.com/iVampireSP/foundation/config"
+import "github.com/iVampireSP/beacon/config"
 
 // NewDefaultConfig returns an i18n Config populated from the application config.
 func NewDefaultConfig() Config {

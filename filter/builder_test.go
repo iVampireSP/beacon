@@ -3,7 +3,7 @@ package filter_test
 import (
 	"testing"
 
-	"github.com/iVampireSP/foundation/filter"
+	"github.com/iVampireSP/beacon/filter"
 )
 
 func TestBuilder_Basic(t *testing.T) {

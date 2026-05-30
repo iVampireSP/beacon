@@ -1,8 +1,8 @@
 package console
 
 import (
-	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/version"
+	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/version"
 	"github.com/spf13/cobra"
 )
 

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/iVampireSP/foundation/registry"
+	"github.com/iVampireSP/beacon/registry"
 )
 
 // Option configures an App. Mirrors Kratos's functional-option style.

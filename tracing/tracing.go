@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iVampireSP/foundation/logger"
+	"github.com/iVampireSP/beacon/logger"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	otlpmetricgrpc "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"

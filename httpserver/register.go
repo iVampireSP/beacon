@@ -6,7 +6,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/iVampireSP/foundation/validator"
+	"github.com/iVampireSP/beacon/validator"
 )
 
 // GET 注册 GET 路由。

@@ -3,7 +3,7 @@ package queue
 import (
 	"time"
 
-	"github.com/iVampireSP/foundation/config"
+	"github.com/iVampireSP/beacon/config"
 )
 
 // NewDefaultConfig returns a queue Config populated from the application config.

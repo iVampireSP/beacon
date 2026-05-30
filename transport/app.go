@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/iVampireSP/foundation/logger"
-	"github.com/iVampireSP/foundation/registry"
+	"github.com/iVampireSP/beacon/logger"
+	"github.com/iVampireSP/beacon/registry"
 	"golang.org/x/sync/errgroup"
 )
 

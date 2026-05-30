@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iVampireSP/foundation/registry"
-	"github.com/iVampireSP/foundation/transport"
+	"github.com/iVampireSP/beacon/registry"
+	"github.com/iVampireSP/beacon/transport"
 )
 
 // fakeServer blocks in Start until Stop is called, recording both, and reports

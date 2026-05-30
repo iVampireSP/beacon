@@ -1,8 +1,8 @@
 package bus
 
 import (
-	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/support"
+	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/support"
 )
 
 // BusServiceProvider wires the event bus and owns the `eventbus` command,

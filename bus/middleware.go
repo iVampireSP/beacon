@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iVampireSP/foundation/logger"
+	"github.com/iVampireSP/beacon/logger"
 )
 
 type envelopeContextKey struct{}

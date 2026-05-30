@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/iVampireSP/foundation/keystore"
+	"github.com/iVampireSP/beacon/keystore"
 )
 
 // Cipher AES-256-GCM 对称加密，密钥材料来自 keystore RSA 私钥

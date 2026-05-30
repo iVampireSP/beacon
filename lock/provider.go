@@ -1,6 +1,6 @@
 package lock
 
-import "github.com/iVampireSP/foundation/container"
+import "github.com/iVampireSP/beacon/container"
 
 type ServiceProvider struct {
 	app *container.Application

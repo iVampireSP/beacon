@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"github.com/iVampireSP/foundation/cerr"
-	"github.com/iVampireSP/foundation/logger"
+	"github.com/iVampireSP/beacon/cerr"
+	"github.com/iVampireSP/beacon/logger"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"

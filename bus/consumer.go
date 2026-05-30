@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iVampireSP/foundation/cerr"
+	"github.com/iVampireSP/beacon/cerr"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 )

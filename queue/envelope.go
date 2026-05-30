@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/iVampireSP/foundation/json"
+	"github.com/iVampireSP/beacon/json"
 )
 
 // Envelope 消息包装

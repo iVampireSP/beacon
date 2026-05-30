@@ -3,7 +3,7 @@ package support_test
 import (
 	"testing"
 
-	"github.com/iVampireSP/foundation/support"
+	"github.com/iVampireSP/beacon/support"
 )
 
 // fakeKernel captures RegisterCommands so the base can be tested without the

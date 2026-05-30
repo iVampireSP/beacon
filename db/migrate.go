@@ -7,8 +7,8 @@ import (
 	"io/fs"
 	"strings"
 
-	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/lock"
+	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/lock"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )

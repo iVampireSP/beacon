@@ -1,6 +1,6 @@
 package bus
 
-import "github.com/iVampireSP/foundation/config"
+import "github.com/iVampireSP/beacon/config"
 
 // NewDefaultConfig returns a bus Config populated from the application config.
 func NewDefaultConfig() Config {

@@ -3,7 +3,7 @@ package validator
 import (
 	"strings"
 
-	"github.com/iVampireSP/foundation/cerr"
+	"github.com/iVampireSP/beacon/cerr"
 )
 
 // 临时邮箱域名黑名单（常见的一次性邮箱服务）

@@ -8,11 +8,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/lock"
-	"github.com/iVampireSP/foundation/logger"
-	jobqueue "github.com/iVampireSP/foundation/queue"
-	"github.com/iVampireSP/foundation/tracing"
+	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/lock"
+	"github.com/iVampireSP/beacon/logger"
+	jobqueue "github.com/iVampireSP/beacon/queue"
+	"github.com/iVampireSP/beacon/tracing"
 
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"

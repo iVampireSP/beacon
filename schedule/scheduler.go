@@ -6,8 +6,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/iVampireSP/foundation/logger"
-	jobqueue "github.com/iVampireSP/foundation/queue"
+	"github.com/iVampireSP/beacon/logger"
+	jobqueue "github.com/iVampireSP/beacon/queue"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iVampireSP/foundation/logger"
+	"github.com/iVampireSP/beacon/logger"
 	"github.com/redis/go-redis/v9"
 )
 

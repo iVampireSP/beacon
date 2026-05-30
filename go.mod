@@ -1,4 +1,4 @@
-module github.com/iVampireSP/foundation
+module github.com/iVampireSP/beacon
 
 go 1.26.0
 

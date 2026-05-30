@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"github.com/iVampireSP/foundation/config"
-	"github.com/iVampireSP/foundation/container"
+	"github.com/iVampireSP/beacon/config"
+	"github.com/iVampireSP/beacon/container"
 	"github.com/redis/go-redis/v9"
 )
 

@@ -3,7 +3,7 @@ package db
 import (
 	"time"
 
-	"github.com/iVampireSP/foundation/config"
+	"github.com/iVampireSP/beacon/config"
 )
 
 // NewDefaultConfig returns a db Config populated from the application config.

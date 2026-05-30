@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/iVampireSP/foundation/json"
+	"github.com/iVampireSP/beacon/json"
 )
 
 type Trace struct {

@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	jobqueue "github.com/iVampireSP/foundation/queue"
+	jobqueue "github.com/iVampireSP/beacon/queue"
 	"github.com/spf13/cobra"
 )
 

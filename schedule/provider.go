@@ -1,7 +1,7 @@
 package schedule
 
 import (
-	"github.com/iVampireSP/foundation/support"
+	"github.com/iVampireSP/beacon/support"
 )
 
 // ScheduleServiceProvider owns the `scheduler` command. It binds no singletons

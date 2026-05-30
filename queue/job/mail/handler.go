@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/iVampireSP/foundation/json"
+	"github.com/iVampireSP/beacon/json"
 
-	infraemail "github.com/iVampireSP/foundation/email"
-	jobqueue "github.com/iVampireSP/foundation/queue"
+	infraemail "github.com/iVampireSP/beacon/email"
+	jobqueue "github.com/iVampireSP/beacon/queue"
 )
 
 const JobName = "mail.send"

@@ -21,9 +21,9 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"gopkg.in/yaml.v3"
 
-	"github.com/iVampireSP/foundation/cerr"
-	"github.com/iVampireSP/foundation/json"
-	"github.com/iVampireSP/foundation/logger"
+	"github.com/iVampireSP/beacon/cerr"
+	"github.com/iVampireSP/beacon/json"
+	"github.com/iVampireSP/beacon/logger"
 )
 
 // Config holds the HTTP server configuration.

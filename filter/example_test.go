@@ -3,7 +3,7 @@ package filter_test
 import (
 	"fmt"
 
-	"github.com/iVampireSP/foundation/filter"
+	"github.com/iVampireSP/beacon/filter"
 )
 
 // Example_basicUsage demonstrates basic filter building

@@ -10,7 +10,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/iVampireSP/foundation/i18n"
+	"github.com/iVampireSP/beacon/i18n"
 )
 
 // defaultFS 通过 MustInitWithFS 注册的模板文件系统。

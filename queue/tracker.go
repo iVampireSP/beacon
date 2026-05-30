@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/iVampireSP/foundation/json"
-	"github.com/iVampireSP/foundation/logger"
+	"github.com/iVampireSP/beacon/json"
+	"github.com/iVampireSP/beacon/logger"
 	"github.com/redis/go-redis/v9"
 )
 
