@@ -7,8 +7,8 @@ import (
 	"io/fs"
 	"strings"
 
+	"github.com/iVampireSP/beacon/cache"
 	"github.com/iVampireSP/beacon/foundation"
-	"github.com/iVampireSP/beacon/lock"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +34,7 @@ func MustInitWithFS(migrationsFS embed.FS) {
 type Migrate struct {
 	app    *foundation.Application
 	db     *sql.DB
-	locker *lock.Locker
+	locker *cache.Locker
 }
 
 // NewMigrate builds the migrate command tree. app is injected by the container;
@@ -49,7 +49,7 @@ func (m *Migrate) Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "migrate", Short: "Database migrations",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			return m.app.Invoke(func(d *sql.DB, locker *lock.Locker) {
+			return m.app.Invoke(func(d *sql.DB, locker *cache.Locker) {
 				m.db = d
 				m.locker = locker
 			})

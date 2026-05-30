@@ -8,8 +8,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/iVampireSP/beacon/cache"
 	"github.com/iVampireSP/beacon/foundation"
-	"github.com/iVampireSP/beacon/lock"
 	"github.com/iVampireSP/beacon/logger"
 	jobqueue "github.com/iVampireSP/beacon/queue"
 	"github.com/iVampireSP/beacon/tracing"
@@ -22,7 +22,7 @@ import (
 type schedulerCommand struct {
 	app      *foundation.Application
 	cron     *cron.Cron
-	locker   *lock.Locker
+	locker   *cache.Locker
 	mq       *jobqueue.Queue
 	cronjobs []CronJob
 }
@@ -39,7 +39,7 @@ func (s *schedulerCommand) Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "scheduler", Short: "Start cron queue scheduler",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := s.app.Invoke(func(c *cron.Cron, l *lock.Locker, mq *jobqueue.Queue) {
+			if err := s.app.Invoke(func(c *cron.Cron, l *cache.Locker, mq *jobqueue.Queue) {
 				s.cron = c
 				s.locker = l
 				s.mq = mq

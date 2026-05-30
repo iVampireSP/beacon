@@ -1,4 +1,4 @@
-package lock
+package cache
 
 import (
 	"context"
@@ -10,12 +10,16 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// Distributed locking lives in the cache package — the analog of Laravel's
+// Cache::lock(): a lock is a cache entry. All operations are single-key (the Lua
+// scripts touch only KEYS[1]), so they route correctly under Redis Cluster.
+
 var (
 	// ErrNotObtained is returned when a lock cannot be obtained.
-	ErrNotObtained = errors.New("lock: not obtained")
+	ErrNotObtained = errors.New("cache: lock not obtained")
 
 	// ErrLockNotHeld is returned when trying to release an inactive lock.
-	ErrLockNotHeld = errors.New("lock: lock not held")
+	ErrLockNotHeld = errors.New("cache: lock not held")
 )
 
 var (
@@ -38,12 +42,12 @@ var (
 	`)
 )
 
-// Locker is a distributed lock client using Redis.
+// Locker is a Redis-backed distributed lock client.
 type Locker struct {
 	client redis.UniversalClient
 }
 
-// NewLocker creates a new Locker instance.
+// NewLocker creates a Locker over the given Redis client.
 func NewLocker(client redis.UniversalClient) *Locker {
 	return &Locker{client: client}
 }
@@ -61,7 +65,7 @@ type ObtainOptions struct {
 	RetryDelay time.Duration
 }
 
-// Obtain tries to obtain a new lock using a key with the given TTL.
+// Obtain tries to obtain a lock on key with the given TTL, retrying per opts.
 func (l *Locker) Obtain(ctx context.Context, key string, ttl time.Duration, opts *ObtainOptions) (*Lock, error) {
 	value, err := randomToken()
 	if err != nil {
@@ -117,7 +121,7 @@ func (l *Lock) Key() string { return l.key }
 // Token returns the token value set by the lock.
 func (l *Lock) Token() string { return l.value }
 
-// Release manually releases the lock.
+// Release releases the lock if still held by this token.
 func (l *Lock) Release(ctx context.Context) error {
 	if l == nil {
 		return ErrLockNotHeld
@@ -135,7 +139,7 @@ func (l *Lock) Release(ctx context.Context) error {
 	return nil
 }
 
-// Refresh extends the lock with a new TTL.
+// Refresh extends the lock with a new TTL if still held by this token.
 func (l *Lock) Refresh(ctx context.Context, ttl time.Duration) error {
 	if l == nil {
 		return ErrLockNotHeld
@@ -151,7 +155,7 @@ func (l *Lock) Refresh(ctx context.Context, ttl time.Duration) error {
 	return nil
 }
 
-// TTL returns the remaining time-to-live.
+// TTL returns the lock's remaining time-to-live (0 if not held by this token).
 func (l *Lock) TTL(ctx context.Context) (time.Duration, error) {
 	if l == nil {
 		return 0, ErrLockNotHeld
@@ -176,7 +180,7 @@ func (l *Lock) TTL(ctx context.Context) (time.Duration, error) {
 	return ttl, nil
 }
 
-// Acquire 便捷函数：获取独占分布式锁，返回 release 函数。
+// Acquire obtains an exclusive lock and returns a release function.
 func Acquire(ctx context.Context, locker *Locker, name string, ttl time.Duration) (func(), error) {
 	lk, err := locker.Obtain(ctx, name, ttl, nil)
 	if err != nil {

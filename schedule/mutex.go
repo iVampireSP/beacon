@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iVampireSP/beacon/lock"
+	"github.com/iVampireSP/beacon/cache"
 )
 
 // Mutex 分布式锁接口
@@ -16,16 +16,16 @@ type Mutex interface {
 
 // RedisMutex 基于 Redis 的分布式锁实现
 type RedisMutex struct {
-	locker *lock.Locker
-	locks  map[string]*lock.Lock
+	locker *cache.Locker
+	locks  map[string]*cache.Lock
 	mu     sync.Mutex
 }
 
 // NewRedisMutex 创建 Redis 分布式锁
-func NewRedisMutex(locker *lock.Locker) *RedisMutex {
+func NewRedisMutex(locker *cache.Locker) *RedisMutex {
 	return &RedisMutex{
 		locker: locker,
-		locks:  make(map[string]*lock.Lock),
+		locks:  make(map[string]*cache.Lock),
 	}
 }
 
@@ -41,7 +41,7 @@ func (m *RedisMutex) Acquire(ctx context.Context, name string, ttl time.Duration
 
 	lk, err := m.locker.Obtain(ctx, name, ttl, nil)
 	if err != nil {
-		if err == lock.ErrNotObtained {
+		if err == cache.ErrNotObtained {
 			return false, nil
 		}
 		return false, err
@@ -64,7 +64,7 @@ func (m *RedisMutex) Release(ctx context.Context, name string) error {
 	err := lk.Release(ctx)
 	delete(m.locks, name)
 
-	if err == lock.ErrLockNotHeld {
+	if err == cache.ErrLockNotHeld {
 		return nil
 	}
 	return err

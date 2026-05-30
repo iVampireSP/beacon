@@ -35,6 +35,10 @@ func (p *ServiceProvider) Register() {
 		}
 		return nil
 	})
+
+	// The cache facade and the distributed locker over the same client.
+	p.app.Singleton(NewStore)
+	p.app.Singleton(NewLocker)
 }
 
 func (p *ServiceProvider) Boot() {}
