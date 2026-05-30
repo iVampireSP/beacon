@@ -7,7 +7,9 @@ import (
 
 	"github.com/iVampireSP/beacon/cerr"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -154,6 +156,12 @@ func (c *consumer) handleMessage(ctx context.Context, msg kafkaMessage) (bool, e
 	}
 	ctx = ContextWithEnvelope(ctx, env)
 
+	// Make the async hop a span, child of the producer's (propagated above), so
+	// the consume step is visible in the trace and downstream spans nest under it.
+	ctx, span := otel.Tracer("github.com/iVampireSP/beacon/bus").Start(ctx,
+		"bus.consume "+env.Name, trace.WithSpanKind(trace.SpanKindConsumer))
+	defer span.End()
+
 	c.mu.RLock()
 	var handlers []Handler
 	for pattern, hs := range c.listeners {
@@ -182,6 +190,8 @@ func (c *consumer) handleMessage(ctx context.Context, msg kafkaMessage) (bool, e
 		}
 	}
 	if firstErr != nil {
+		span.RecordError(firstErr)
+		span.SetStatus(codes.Error, firstErr.Error())
 		if dlq == nil {
 			return false, ErrProcessEvent.WithCause(firstErr)
 		}

@@ -13,7 +13,9 @@ import (
 	"github.com/iVampireSP/beacon/logger"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // asynqLogger routes asynq's internal logs through the application logger, so
@@ -306,6 +308,13 @@ func (q *Queue) handleTask(ctx context.Context, name string, handler Handler, ta
 	}
 
 	ctx = ContextWithEnvelope(ctx, env)
+
+	// Make the job a span, child of the dispatcher's (propagated above), so the
+	// process step is visible in the trace and downstream spans nest under it.
+	ctx, span := otel.Tracer("github.com/iVampireSP/beacon/queue").Start(ctx,
+		"queue.process "+name, trace.WithSpanKind(trace.SpanKindConsumer))
+	defer span.End()
+
 	if q.tracker != nil {
 		q.tracker.recordProcessing(ctx, env)
 		q.tracker.setCurrentJob(ctx, env.ID)
@@ -324,6 +333,9 @@ func (q *Queue) handleTask(ctx context.Context, name string, handler Handler, ta
 		}
 		return nil
 	}
+
+	span.RecordError(err)
+	span.SetStatus(codes.Error, err.Error())
 
 	skipRetry := errors.Is(err, asynq.SkipRetry)
 	retriesExhausted := env.MaxRetry > 0 && env.Attempt+1 >= env.MaxRetry
