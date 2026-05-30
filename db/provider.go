@@ -2,8 +2,8 @@ package db
 
 import (
 	"database/sql"
+	"sync/atomic"
 
-	"github.com/iVampireSP/beacon/container"
 	"github.com/iVampireSP/beacon/foundation"
 	"github.com/iVampireSP/beacon/support"
 )
@@ -26,12 +26,27 @@ func NewDatabaseServiceProvider(app *foundation.Application) *DatabaseServicePro
 
 func (p *DatabaseServiceProvider) Register() {
 	p.app.Singleton(NewDefaultConfig)
-	p.app.Singleton(NewDB)
+
+	// Capture the pool when (and only when) it is actually constructed, and
+	// register the close hook NOW, during Register, so it runs in this
+	// provider's shutdown slot. Shutdown is reverse-registration order, so this
+	// foundational resource — registered early — closes late, after anything
+	// that may use it. Registering the close lazily (on first resolve) or in a
+	// Booted callback would append it last and thus close the DB first.
+	var pool atomic.Pointer[sql.DB]
+	p.app.Singleton(func(cfg Config) (*sql.DB, error) {
+		db, err := NewDB(cfg)
+		if err == nil {
+			pool.Store(db)
+		}
+		return db, err
+	})
 	p.app.OnShutdown(func() error {
-		if c, err := container.Make[*sql.DB](p.app.Container); err == nil && c != nil {
-			return c.Close()
+		if db := pool.Load(); db != nil {
+			return db.Close()
 		}
 		return nil
 	})
+
 	p.AddCommand(NewMigrate)
 }

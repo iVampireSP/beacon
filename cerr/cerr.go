@@ -37,8 +37,7 @@ func (e *Error) Unwrap() error {
 
 // Is reports whether the error matches the target.
 func (e *Error) Is(target error) bool {
-	var t *Error
-	if errors.As(target, &t) {
+	if t, ok := errors.AsType[*Error](target); ok {
 		// Match by code if both have codes
 		if e.Code != "" && t.Code != "" {
 			return e.Code == t.Code

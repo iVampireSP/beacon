@@ -20,10 +20,12 @@ import (
 // commands with just the application in hand.
 type Application struct {
 	*container.Container
-	providers     []support.Provider
-	shutdownFns   []func() error
-	consoleKernel contracts.ConsoleKernel
-	booted        bool
+	providers        []support.Provider
+	bootingCallbacks []func(*Application)
+	bootedCallbacks  []func(*Application)
+	shutdownFns      []func() error
+	consoleKernel    contracts.ConsoleKernel
+	booted           bool
 }
 
 // newApplication creates an application over a fresh container and registers the
@@ -45,16 +47,40 @@ func (app *Application) Register(providers ...support.Provider) {
 	}
 }
 
-// Boot calls Boot() on all registered providers (once), after all are registered.
+// Boot fires the booting callbacks, calls Boot() on all registered providers
+// (once), then fires the booted callbacks — mirroring Laravel's boot().
 func (app *Application) Boot() error {
 	if app.booted {
 		return nil
 	}
+	app.fireAppCallbacks(app.bootingCallbacks)
 	for _, p := range app.providers {
 		p.Boot()
 	}
 	app.booted = true
+	app.fireAppCallbacks(app.bootedCallbacks)
 	return nil
+}
+
+// Booting registers a callback to run just before the providers are booted.
+func (app *Application) Booting(callback func(*Application)) {
+	app.bootingCallbacks = append(app.bootingCallbacks, callback)
+}
+
+// Booted registers a callback to run just after all providers have booted. If
+// the application is already booted, the callback runs immediately — matching
+// Laravel's $app->booted().
+func (app *Application) Booted(callback func(*Application)) {
+	app.bootedCallbacks = append(app.bootedCallbacks, callback)
+	if app.booted {
+		callback(app)
+	}
+}
+
+func (app *Application) fireAppCallbacks(callbacks []func(*Application)) {
+	for _, cb := range callbacks {
+		cb(app)
+	}
 }
 
 // Providers returns the registered service providers in registration order.
