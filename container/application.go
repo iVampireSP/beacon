@@ -6,6 +6,7 @@ import (
 
 	"github.com/iVampireSP/foundation/console"
 	"github.com/iVampireSP/foundation/support"
+	"github.com/iVampireSP/foundation/version"
 	"github.com/spf13/cobra"
 )
 
@@ -112,8 +113,9 @@ func (app *Application) Run(use, short string) error {
 	}
 
 	root := &cobra.Command{
-		Use:   use,
-		Short: short,
+		Use:     use,
+		Short:   short,
+		Version: version.String(),
 	}
 
 	// Add all registered commands
