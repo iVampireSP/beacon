@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/foundation"
 	"github.com/iVampireSP/beacon/support"
 )
 
@@ -16,11 +17,11 @@ import (
 // ORM-agnostic.
 type DatabaseServiceProvider struct {
 	support.ServiceProvider
-	app *container.Application
+	app *foundation.Application
 }
 
-func NewDatabaseServiceProvider(app *container.Application, kernel support.Kernel) *DatabaseServiceProvider {
-	return &DatabaseServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: kernel}, app: app}
+func NewDatabaseServiceProvider(app *foundation.Application) *DatabaseServiceProvider {
+	return &DatabaseServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
 }
 
 func (p *DatabaseServiceProvider) Register() {

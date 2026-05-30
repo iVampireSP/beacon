@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/foundation"
 	"github.com/iVampireSP/beacon/logger"
 	"github.com/iVampireSP/beacon/tracing"
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ import (
 
 // EventBus holds EventBus service dependencies.
 type EventBus struct {
-	app       *container.Application
+	app       *foundation.Application
 	bus       *Bus
 	listeners []Listener
 }
@@ -24,7 +24,7 @@ type EventBus struct {
 // NewEventBus builds the eventbus command. app is injected by the container;
 // the bus and listeners are resolved lazily in PersistentPreRunE so unrelated
 // commands don't open a bus connection.
-func NewEventBus(app *container.Application) *cobra.Command {
+func NewEventBus(app *foundation.Application) *cobra.Command {
 	return (&EventBus{app: app}).Command()
 }
 
@@ -40,7 +40,7 @@ func (e *EventBus) Command() *cobra.Command {
 			}
 			// Collect listeners contributed by any provider implementing
 			// ListenerProvider, instead of one aggregated dig binding.
-			for _, lp := range container.ProvidersImplementing[ListenerProvider](e.app) {
+			for _, lp := range foundation.ProvidersImplementing[ListenerProvider](e.app) {
 				e.listeners = append(e.listeners, lp.Listeners()...)
 			}
 			return nil

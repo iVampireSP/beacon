@@ -8,7 +8,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/foundation"
 	"github.com/iVampireSP/beacon/lock"
 	"github.com/iVampireSP/beacon/logger"
 	jobqueue "github.com/iVampireSP/beacon/queue"
@@ -20,7 +20,7 @@ import (
 
 // schedulerCommand holds the scheduler command's dependencies.
 type schedulerCommand struct {
-	app      *container.Application
+	app      *foundation.Application
 	cron     *cron.Cron
 	locker   *lock.Locker
 	mq       *jobqueue.Queue
@@ -30,7 +30,7 @@ type schedulerCommand struct {
 // NewSchedulerCommand builds the scheduler command. app is injected by the
 // container; cron, lock, queue and cronjobs are resolved lazily in
 // PersistentPreRunE so unrelated commands don't spin up the scheduler.
-func NewSchedulerCommand(app *container.Application) *cobra.Command {
+func NewSchedulerCommand(app *foundation.Application) *cobra.Command {
 	return (&schedulerCommand{app: app}).Command()
 }
 
@@ -48,7 +48,7 @@ func (s *schedulerCommand) Command() *cobra.Command {
 			}
 			// Collect cronjobs contributed by any provider implementing
 			// CronProvider, instead of one aggregated dig binding.
-			for _, cp := range container.ProvidersImplementing[CronProvider](s.app) {
+			for _, cp := range foundation.ProvidersImplementing[CronProvider](s.app) {
 				s.cronjobs = append(s.cronjobs, cp.CronJobs()...)
 			}
 			return nil

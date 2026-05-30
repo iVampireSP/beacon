@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"github.com/iVampireSP/beacon/foundation"
 	"github.com/iVampireSP/beacon/support"
 )
 
@@ -11,8 +12,8 @@ type ScheduleServiceProvider struct {
 	support.ServiceProvider
 }
 
-func NewScheduleServiceProvider(kernel support.Kernel) *ScheduleServiceProvider {
-	return &ScheduleServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: kernel}}
+func NewScheduleServiceProvider(app *foundation.Application) *ScheduleServiceProvider {
+	return &ScheduleServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}}
 }
 
 func (p *ScheduleServiceProvider) Register() {

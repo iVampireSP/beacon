@@ -9,19 +9,18 @@ import (
 // Application is the console application that owns and runs the CLI commands —
 // the analog of Laravel's Illuminate\Console\Application (Artisan). It resolves
 // each command's constructor through the container (constructor injection) and
-// assembles the cobra root. It is the command-running counterpart to the
-// service-running transport.App; the Kernel bootstraps the framework and then
-// delegates execution here.
+// assembles the cobra root. The Foundation console kernel bootstraps the
+// framework and then delegates execution here.
 type Application struct {
-	app  *container.Application
-	root *cobra.Command
+	container *container.Container
+	root      *cobra.Command
 }
 
-// NewApplication creates the Artisan over the container, with the given root
+// NewApplication creates the Artisan over the DI container, with the given root
 // command identity.
-func NewApplication(app *container.Application, use, short string) *Application {
+func NewApplication(c *container.Container, use, short string) *Application {
 	return &Application{
-		app: app,
+		container: c,
 		root: &cobra.Command{
 			Use:     use,
 			Short:   short,
@@ -32,8 +31,8 @@ func NewApplication(app *container.Application, use, short string) *Application 
 
 // Add resolves a command constructor through the container and registers the
 // resulting *cobra.Command on the root. The constructor declares its
-// dependencies as parameters, and may take *container.Application to reach the
-// container directly.
+// dependencies as parameters; the foundation.Application is registered as a
+// container singleton, so a command may inject it like any other dependency.
 func (a *Application) Add(constructor any) error {
 	cmd, err := a.build(constructor)
 	if err != nil {
@@ -49,15 +48,12 @@ func (a *Application) Run() error {
 }
 
 // build invokes a command constructor with its parameters injected from the
-// container and returns the *cobra.Command it produces. Each constructor runs
-// in its own child scope so several constructors providing *container.Application
-// (or the same dependency type) don't collide.
+// container and returns the *cobra.Command it produces. Each constructor runs in
+// its own child scope so several constructors requesting the same dependency
+// type don't collide.
 func (a *Application) build(constructor any) (*cobra.Command, error) {
 	var cmd *cobra.Command
-	scope := a.app.Scope().Scope("command")
-	if err := scope.Provide(func() *container.Application { return a.app }); err != nil {
-		return nil, err
-	}
+	scope := a.container.Scope().Scope("command")
 	if err := scope.Provide(constructor); err != nil {
 		return nil, err
 	}

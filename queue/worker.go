@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/foundation"
 	"github.com/iVampireSP/beacon/logger"
 	"github.com/iVampireSP/beacon/queue/job"
 	"github.com/iVampireSP/beacon/tracing"
@@ -18,7 +18,7 @@ import (
 
 // Worker holds Worker service dependencies.
 type Worker struct {
-	app      *container.Application
+	app      *foundation.Application
 	queue    *Queue
 	handlers []job.Handler
 }
@@ -26,7 +26,7 @@ type Worker struct {
 // NewWorker builds the worker command. app is injected by the container; the
 // queue and job handlers are resolved lazily in PersistentPreRunE so unrelated
 // commands don't open a queue connection.
-func NewWorker(app *container.Application) *cobra.Command {
+func NewWorker(app *foundation.Application) *cobra.Command {
 	return (&Worker{app: app}).Command()
 }
 
@@ -42,7 +42,7 @@ func (w *Worker) Command() *cobra.Command {
 			}
 			// Collect job handlers contributed by any provider implementing
 			// job.HandlerProvider, instead of one aggregated dig binding.
-			for _, hp := range container.ProvidersImplementing[job.HandlerProvider](w.app) {
+			for _, hp := range foundation.ProvidersImplementing[job.HandlerProvider](w.app) {
 				w.handlers = append(w.handlers, hp.Jobs()...)
 			}
 			return nil

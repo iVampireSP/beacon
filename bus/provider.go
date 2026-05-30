@@ -1,7 +1,7 @@
 package bus
 
 import (
-	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/foundation"
 	"github.com/iVampireSP/beacon/support"
 )
 
@@ -10,11 +10,11 @@ import (
 // together in the module root.
 type BusServiceProvider struct {
 	support.ServiceProvider
-	app *container.Application
+	app *foundation.Application
 }
 
-func NewBusServiceProvider(app *container.Application, kernel support.Kernel) *BusServiceProvider {
-	return &BusServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: kernel}, app: app}
+func NewBusServiceProvider(app *foundation.Application) *BusServiceProvider {
+	return &BusServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
 }
 
 func (p *BusServiceProvider) Register() {

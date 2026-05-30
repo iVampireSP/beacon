@@ -3,14 +3,15 @@ package cache
 import (
 	"github.com/iVampireSP/beacon/config"
 	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/foundation"
 	"github.com/redis/go-redis/v9"
 )
 
 type ServiceProvider struct {
-	app *container.Application
+	app *foundation.Application
 }
 
-func NewServiceProvider(app *container.Application) *ServiceProvider {
+func NewServiceProvider(app *foundation.Application) *ServiceProvider {
 	return &ServiceProvider{app: app}
 }
 

@@ -1,10 +1,8 @@
-package container
+package foundation
 
 import "testing"
 
-// capable is a local capability interface used to test ProvidersImplementing
-// without depending on any package that imports container (which would create a
-// test-only import cycle).
+// capable is a local capability interface used to test ProvidersImplementing.
 type capable interface{ Capability() }
 
 type capableProvider struct{}
@@ -19,7 +17,7 @@ func (plainProvider) Register() {}
 func (plainProvider) Boot()     {}
 
 func TestBootRunsAllProviders(t *testing.T) {
-	app := NewApplication()
+	app := newApplication()
 	app.Register(capableProvider{}, plainProvider{})
 
 	if err := app.Boot(); err != nil {
@@ -31,7 +29,7 @@ func TestBootRunsAllProviders(t *testing.T) {
 }
 
 func TestProvidersImplementingFiltersByCapability(t *testing.T) {
-	app := NewApplication()
+	app := newApplication()
 	app.Register(capableProvider{}, plainProvider{})
 
 	if got := ProvidersImplementing[capable](app); len(got) != 1 {

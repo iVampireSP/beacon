@@ -1,12 +1,12 @@
 package cron
 
-import "github.com/iVampireSP/beacon/container"
+import "github.com/iVampireSP/beacon/foundation"
 
 type ServiceProvider struct {
-	app *container.Application
+	app *foundation.Application
 }
 
-func NewServiceProvider(app *container.Application) *ServiceProvider {
+func NewServiceProvider(app *foundation.Application) *ServiceProvider {
 	return &ServiceProvider{app: app}
 }
 
