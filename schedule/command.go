@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/iVampireSP/beacon/cache"
+	"github.com/iVampireSP/beacon/config"
 	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/logger"
 	jobqueue "github.com/iVampireSP/beacon/queue"
@@ -71,7 +72,7 @@ func (s *schedulerCommand) Handle(cmd *cobra.Command) error {
 
 	ctx := cmd.Context()
 
-	tp, err := tracing.GetService("foundation-scheduler")
+	tp, err := tracing.GetService(config.String("app.name", "beacon"))
 	if err != nil {
 		return err
 	}

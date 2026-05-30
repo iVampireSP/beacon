@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/iVampireSP/beacon/config"
 	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/logger"
 	"github.com/iVampireSP/beacon/tracing"
@@ -64,7 +65,7 @@ func (e *EventBus) Handle(cmd *cobra.Command) error {
 	ctx, cancel := context.WithCancel(cmd.Context())
 	defer cancel()
 
-	tp, err := tracing.GetService("foundation-eventbus")
+	tp, err := tracing.GetService(config.String("app.name", "beacon"))
 	if err != nil {
 		return err
 	}

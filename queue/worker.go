@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/iVampireSP/beacon/config"
 	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/logger"
 	"github.com/iVampireSP/beacon/queue/job"
@@ -58,7 +59,7 @@ func (w *Worker) Handle(cmd *cobra.Command) error {
 	ctx, cancel := context.WithCancel(cmd.Context())
 	defer cancel()
 
-	tp, err := tracing.GetService("foundation-worker")
+	tp, err := tracing.GetService(config.String("app.name", "beacon"))
 	if err != nil {
 		return err
 	}
