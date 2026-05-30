@@ -27,10 +27,8 @@ func (plainProvider) Boot()     {}
 func TestBootCollectsCommandsFromCommandProviders(t *testing.T) {
 	app := NewApplication()
 	app.Register(
-		Adapt(func(*Application) *commandProvider {
-			return &commandProvider{cmds: []console.ConsoleCommand{fakeCommand{"a"}, fakeCommand{"b"}}}
-		}),
-		Adapt(func(*Application) plainProvider { return plainProvider{} }),
+		&commandProvider{cmds: []console.ConsoleCommand{fakeCommand{"a"}, fakeCommand{"b"}}},
+		plainProvider{},
 	)
 
 	if err := app.Boot(); err != nil {
@@ -44,8 +42,8 @@ func TestBootCollectsCommandsFromCommandProviders(t *testing.T) {
 func TestProvidersImplementingFiltersByCapability(t *testing.T) {
 	app := NewApplication()
 	app.Register(
-		Adapt(func(*Application) *commandProvider { return &commandProvider{} }),
-		Adapt(func(*Application) plainProvider { return plainProvider{} }),
+		&commandProvider{},
+		plainProvider{},
 	)
 
 	cps := ProvidersImplementing[console.CommandProvider](app)
@@ -57,6 +55,6 @@ func TestProvidersImplementingFiltersByCapability(t *testing.T) {
 	}
 }
 
-// Note: a constructor that does not return a support.ServiceProvider (e.g.
-// func(*Application) int) is now rejected at COMPILE time by Adapt's type
-// parameter constraint, so there is no runtime panic case left to test.
+// Note: Register takes support.ServiceProvider instances, so anything that does
+// not implement the interface is rejected at COMPILE time at the call site —
+// there is no runtime panic case left to test.

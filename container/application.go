@@ -26,31 +26,19 @@ func NewApplication() *Application {
 	}
 }
 
-// ProviderFactory builds a service provider from the application. It is the
-// type-safe unit of registration: the constructor contract is enforced by the
-// compiler, so a wrong return type, arity, or parameter type is a build error
-// rather than a boot-time reflect panic.
-type ProviderFactory func(*Application) support.ServiceProvider
-
-// Adapt lifts a concrete-returning constructor (func(*Application) P, where P
-// implements support.ServiceProvider) into a ProviderFactory. It resolves Go's
-// function return-type invariance: func(*Application) *cache.ServiceProvider is
-// not assignable to ProviderFactory directly, so each constructor is wrapped via
-// Adapt at the registration site (e.g. bootstrap.Providers).
-func Adapt[P support.ServiceProvider](ctor func(*Application) P) ProviderFactory {
-	return func(app *Application) support.ServiceProvider { return ctor(app) }
-}
-
-// Register constructs and registers service providers in order, invoking each
-// provider's Register() immediately. Taking ProviderFactory (not any) keeps the
-// constructor contract compile-time enforced and needs no reflection.
+// Register hands service providers to the application. Each provider's
+// Register() is invoked immediately so it can bind dependencies into the service
+// container; the provider is then retained for Boot and capability collection.
+//
+// Providers are passed as constructed instances (a *XxxServiceProvider satisfies
+// support.ServiceProvider directly), mirroring Laravel's
+// $app->register(new Provider($app)). No adapter or reflection is involved.
 //
 // Usage:
 //
-//	app.Register(container.Adapt(orm.NewProvider), container.Adapt(cache.NewServiceProvider), ...)
-func (app *Application) Register(factories ...ProviderFactory) {
-	for _, f := range factories {
-		p := f(app)
+//	app.Register(cache.NewServiceProvider(app), jwt.NewServiceProvider(app), ...)
+func (app *Application) Register(providers ...support.ServiceProvider) {
+	for _, p := range providers {
 		p.Register()
 		app.providers = append(app.providers, p)
 	}
