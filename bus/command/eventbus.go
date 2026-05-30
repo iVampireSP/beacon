@@ -10,7 +10,6 @@ import (
 
 	"github.com/iVampireSP/foundation/bus"
 	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/httpserver"
 	"github.com/iVampireSP/foundation/logger"
 	"github.com/iVampireSP/foundation/tracing"
 	"github.com/spf13/cobra"
@@ -21,7 +20,6 @@ type EventBus struct {
 	app       *container.Application
 	bus       *bus.Bus
 	listeners []bus.Listener
-	metrics   httpserver.MetricsConfig
 }
 
 // NewEventBus declares EventBus command dependencies.
@@ -34,9 +32,8 @@ func (e *EventBus) Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "eventbus", Short: "Start event bus consumer",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := e.app.Invoke(func(b *bus.Bus, m httpserver.MetricsConfig) {
+			if err := e.app.Invoke(func(b *bus.Bus) {
 				e.bus = b
-				e.metrics = m
 			}); err != nil {
 				return err
 			}
@@ -69,12 +66,6 @@ func (e *EventBus) Handle(cmd *cobra.Command) error {
 		return err
 	}
 	defer tracing.ShutdownWithTimeout(tp)
-
-	server := httpserver.New("eventbus", "1.0.0", httpserver.WithMetrics(e.metrics))
-	if err := server.Start(); err != nil {
-		return err
-	}
-	defer server.ShutdownWithTimeout()
 
 	e.bus.Register(e.listeners...)
 	e.bus.EnableDLQ(func(topic string) string {

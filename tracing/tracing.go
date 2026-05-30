@@ -12,7 +12,7 @@ import (
 	"github.com/iVampireSP/foundation/logger"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
+	otlpmetricgrpc "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -57,13 +57,6 @@ func newTracing(cfg Config) (*Tracing, error) {
 		propagation.Baggage{},
 	))
 
-	promExporter, err := otelprom.New()
-	if err != nil {
-		return nil, err
-	}
-	mp := metric.NewMeterProvider(metric.WithReader(promExporter))
-	otel.SetMeterProvider(mp)
-
 	if !cfg.Enabled {
 		return nil, ErrTracingDisabled
 	}
@@ -75,6 +68,20 @@ func newTracing(cfg Config) (*Tracing, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Metrics are pushed over OTLP (no Prometheus pull endpoint). This is only
+	// reached when tracing is enabled; otherwise the global meter provider stays
+	// the default no-op, so nothing is exported and no HTTP server is needed.
+	metricExporter, err := otlpmetricgrpc.New(context.Background(),
+		otlpmetricgrpc.WithEndpoint(cfg.Endpoint),
+		otlpmetricgrpc.WithInsecure(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	otel.SetMeterProvider(metric.NewMeterProvider(
+		metric.WithReader(metric.NewPeriodicReader(metricExporter)),
+	))
 
 	queryBaseURL, err := url.Parse(cfg.QueryURL)
 	if err != nil {

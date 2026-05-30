@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/httpserver"
 	"github.com/iVampireSP/foundation/lock"
 	"github.com/iVampireSP/foundation/logger"
 	jobqueue "github.com/iVampireSP/foundation/queue"
@@ -27,7 +26,6 @@ type Scheduler struct {
 	locker   *lock.Locker
 	mq       *jobqueue.Queue
 	cronjobs []schedule.CronJob
-	metrics  httpserver.MetricsConfig
 }
 
 // NewScheduler declares Scheduler command dependencies.
@@ -40,11 +38,10 @@ func (s *Scheduler) Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "scheduler", Short: "Start cron queue scheduler",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := s.app.Invoke(func(c *cron.Cron, l *lock.Locker, mq *jobqueue.Queue, m httpserver.MetricsConfig) {
+			if err := s.app.Invoke(func(c *cron.Cron, l *lock.Locker, mq *jobqueue.Queue) {
 				s.cron = c
 				s.locker = l
 				s.mq = mq
-				s.metrics = m
 			}); err != nil {
 				return err
 			}
@@ -109,12 +106,6 @@ func (s *Scheduler) Handle(cmd *cobra.Command) error {
 		logger.Info("scheduler: all jobs completed")
 		return nil
 	}
-
-	server := httpserver.New("scheduler", "1.0.0", httpserver.WithMetrics(s.metrics))
-	if err := server.Start(); err != nil {
-		return err
-	}
-	defer server.ShutdownWithTimeout()
 
 	if err := sched.Start(ctx); err != nil {
 		return err

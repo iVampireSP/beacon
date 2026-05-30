@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/httpserver"
 	"github.com/iVampireSP/foundation/logger"
 	jobqueue "github.com/iVampireSP/foundation/queue"
 	"github.com/iVampireSP/foundation/queue/job"
@@ -23,7 +22,6 @@ type Worker struct {
 	app      *container.Application
 	queue    *jobqueue.Queue
 	handlers []job.Handler
-	metrics  httpserver.MetricsConfig
 }
 
 // NewWorker declares Worker command dependencies.
@@ -36,9 +34,8 @@ func (w *Worker) Command() *cobra.Command {
 	return &cobra.Command{
 		Use: "worker", Short: "Start background worker",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := w.app.Invoke(func(q *jobqueue.Queue, m httpserver.MetricsConfig) {
+			if err := w.app.Invoke(func(q *jobqueue.Queue) {
 				w.queue = q
-				w.metrics = m
 			}); err != nil {
 				return err
 			}
@@ -63,12 +60,6 @@ func (w *Worker) Handle(cmd *cobra.Command) error {
 		return err
 	}
 	defer tracing.ShutdownWithTimeout(tp)
-
-	server := httpserver.New("worker", "1.0.0", httpserver.WithMetrics(w.metrics))
-	if err := server.Start(); err != nil {
-		return err
-	}
-	defer server.ShutdownWithTimeout()
 
 	// Register all handlers
 	for _, h := range w.handlers {
