@@ -10,8 +10,14 @@ import (
 
 	"github.com/iVampireSP/beacon/container"
 	"github.com/iVampireSP/beacon/contracts"
+	"github.com/iVampireSP/beacon/foundation/bootstrap"
+	"github.com/iVampireSP/beacon/logger"
 	"github.com/iVampireSP/beacon/support"
 )
+
+// Application satisfies the decoupled contracts.Application surface that
+// providers and bootstrappers depend on.
+var _ contracts.Application = (*Application)(nil)
 
 // Application is the Foundation-layer application: the DI container plus the
 // service-provider lifecycle plus the console entry point. Build one with
@@ -21,6 +27,7 @@ import (
 type Application struct {
 	*container.Container
 	providers        []support.Provider
+	bootstrappers    []bootstrap.Bootstrapper
 	bootingCallbacks []func(*Application)
 	bootedCallbacks  []func(*Application)
 	shutdownFns      []func() error
@@ -35,6 +42,19 @@ func newApplication() *Application {
 	app := &Application{Container: container.NewContainer()}
 	_ = app.Singleton(func() *Application { return app })
 	return app
+}
+
+// Singleton registers a constructor whose result is built once and cached. It
+// narrows the embedded *container.Container's Singleton to the signature in
+// contracts.Application, so the contract need not leak the DI library's options.
+func (app *Application) Singleton(constructor any) error {
+	return app.Container.Singleton(constructor)
+}
+
+// Invoke resolves fn's parameters from the container and calls it, narrowing the
+// embedded Container's Invoke to the contracts.Application signature.
+func (app *Application) Invoke(fn any) error {
+	return app.Container.Invoke(fn)
 }
 
 // Register hands service providers to the application. Each provider's Register()
@@ -95,9 +115,37 @@ func (app *Application) RegisterCommands(constructors ...any) {
 	app.consoleKernel.RegisterCommands(constructors...)
 }
 
-// HandleCommand bootstraps and runs the CLI under the given root identity,
-// returning the process exit code. Mirrors Laravel's $app->handleCommand().
-func (app *Application) HandleCommand(use, short string) int {
+// bootstrap runs the ordered bootstrappers (load config, register + boot
+// providers, …) — the analog of Laravel's Application::bootstrapWith.
+func (app *Application) bootstrap() error {
+	for _, b := range app.bootstrappers {
+		if err := b.Bootstrap(app); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// HandleCommand bootstraps the application, dispatches the CLI command, then
+// terminates — returning the process exit code. It mirrors Laravel's
+// $app->handleCommand() → kernel.handle()/terminate(): bootstrap errors are
+// reported here (cobra hasn't run yet to render them); command errors are
+// already rendered to stderr by cobra, so they map straight to exit code 1; and
+// Shutdown (terminate) runs on every path via defer.
+func (app *Application) HandleCommand(use, short string) (code int) {
+	defer func() {
+		if err := app.Shutdown(); err != nil {
+			logger.Error("shutdown", "error", err)
+			if code == 0 {
+				code = 1
+			}
+		}
+	}()
+
+	if err := app.bootstrap(); err != nil {
+		logger.Error("bootstrap failed", "error", err)
+		return 1
+	}
 	if err := app.consoleKernel.Handle(use, short); err != nil {
 		return 1
 	}

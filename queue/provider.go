@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/iVampireSP/beacon/foundation"
+	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/support"
 )
 
@@ -10,10 +10,10 @@ import (
 // its commands live together in the module root.
 type QueueServiceProvider struct {
 	support.ServiceProvider
-	app *foundation.Application
+	app contracts.Application
 }
 
-func NewQueueServiceProvider(app *foundation.Application) *QueueServiceProvider {
+func NewQueueServiceProvider(app contracts.Application) *QueueServiceProvider {
 	return &QueueServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
 }
 

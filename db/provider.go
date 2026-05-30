@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"sync/atomic"
 
-	"github.com/iVampireSP/beacon/foundation"
+	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/support"
 )
 
@@ -17,10 +17,10 @@ import (
 // ORM-agnostic.
 type DatabaseServiceProvider struct {
 	support.ServiceProvider
-	app *foundation.Application
+	app contracts.Application
 }
 
-func NewDatabaseServiceProvider(app *foundation.Application) *DatabaseServiceProvider {
+func NewDatabaseServiceProvider(app contracts.Application) *DatabaseServiceProvider {
 	return &DatabaseServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}, app: app}
 }
 

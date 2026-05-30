@@ -1,12 +1,12 @@
 package lock
 
-import "github.com/iVampireSP/beacon/foundation"
+import "github.com/iVampireSP/beacon/contracts"
 
 type ServiceProvider struct {
-	app *foundation.Application
+	app contracts.Application
 }
 
-func NewServiceProvider(app *foundation.Application) *ServiceProvider {
+func NewServiceProvider(app contracts.Application) *ServiceProvider {
 	return &ServiceProvider{app: app}
 }
 

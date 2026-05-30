@@ -1,7 +1,7 @@
 package schedule
 
 import (
-	"github.com/iVampireSP/beacon/foundation"
+	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/support"
 )
 
@@ -12,7 +12,7 @@ type ScheduleServiceProvider struct {
 	support.ServiceProvider
 }
 
-func NewScheduleServiceProvider(app *foundation.Application) *ScheduleServiceProvider {
+func NewScheduleServiceProvider(app contracts.Application) *ScheduleServiceProvider {
 	return &ScheduleServiceProvider{ServiceProvider: support.ServiceProvider{Kernel: app}}
 }
 

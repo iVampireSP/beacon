@@ -4,14 +4,14 @@ import (
 	"time"
 
 	"github.com/iVampireSP/beacon/config"
-	"github.com/iVampireSP/beacon/foundation"
+	"github.com/iVampireSP/beacon/contracts"
 )
 
 type ServiceProvider struct {
-	app *foundation.Application
+	app contracts.Application
 }
 
-func NewServiceProvider(app *foundation.Application) *ServiceProvider {
+func NewServiceProvider(app contracts.Application) *ServiceProvider {
 	return &ServiceProvider{app: app}
 }
 

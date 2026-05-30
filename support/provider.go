@@ -12,7 +12,7 @@ type Provider interface {
 // Kernel is the command-registrar capability a ServiceProvider needs to declare
 // its console commands. It is declared here (a tiny interface) rather than
 // imported from the foundation/console kernel so support stays a pure leaf and
-// never imports upward — dependency inversion. *foundation.Application satisfies
+// never imports upward — dependency inversion. contracts.Application satisfies
 // it (forwarding RegisterCommands to its console kernel), so a provider that
 // holds the application can push commands through it.
 type Kernel interface {
