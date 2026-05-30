@@ -1,4 +1,4 @@
-package command
+package queue
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/iVampireSP/foundation/container"
 	"github.com/iVampireSP/foundation/logger"
-	jobqueue "github.com/iVampireSP/foundation/queue"
 	"github.com/iVampireSP/foundation/queue/job"
 	"github.com/iVampireSP/foundation/tracing"
 
@@ -20,13 +19,15 @@ import (
 // Worker holds Worker service dependencies.
 type Worker struct {
 	app      *container.Application
-	queue    *jobqueue.Queue
+	queue    *Queue
 	handlers []job.Handler
 }
 
-// NewWorker declares Worker command dependencies.
-func NewWorker(app *container.Application) *Worker {
-	return &Worker{app: app}
+// NewWorker builds the worker command. app is injected by the container; the
+// queue and job handlers are resolved lazily in PersistentPreRunE so unrelated
+// commands don't open a queue connection.
+func NewWorker(app *container.Application) *cobra.Command {
+	return (&Worker{app: app}).Command()
 }
 
 // Command constructs the worker cobra command.
@@ -34,7 +35,7 @@ func (w *Worker) Command() *cobra.Command {
 	return &cobra.Command{
 		Use: "worker", Short: "Start background worker",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := w.app.Invoke(func(q *jobqueue.Queue) {
+			if err := w.app.Invoke(func(q *Queue) {
 				w.queue = q
 			}); err != nil {
 				return err

@@ -1,4 +1,4 @@
-package command
+package db
 
 import (
 	"database/sql"
@@ -37,9 +37,11 @@ type Migrate struct {
 	locker *lock.Locker
 }
 
-// NewMigrate creates a new Migrate command group.
-func NewMigrate(app *container.Application) *Migrate {
-	return &Migrate{app: app}
+// NewMigrate builds the migrate command tree. app is injected by the container;
+// the db pool and locker are resolved lazily in PersistentPreRunE so unrelated
+// commands don't open a database connection.
+func NewMigrate(app *container.Application) *cobra.Command {
+	return (&Migrate{app: app}).Command()
 }
 
 // Command returns the migrate command tree.

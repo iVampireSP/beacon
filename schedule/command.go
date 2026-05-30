@@ -1,4 +1,4 @@
-package command
+package schedule
 
 import (
 	"errors"
@@ -12,29 +12,30 @@ import (
 	"github.com/iVampireSP/foundation/lock"
 	"github.com/iVampireSP/foundation/logger"
 	jobqueue "github.com/iVampireSP/foundation/queue"
-	"github.com/iVampireSP/foundation/schedule"
 	"github.com/iVampireSP/foundation/tracing"
 
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 )
 
-// Scheduler holds Scheduler service dependencies.
-type Scheduler struct {
+// schedulerCommand holds the scheduler command's dependencies.
+type schedulerCommand struct {
 	app      *container.Application
 	cron     *cron.Cron
 	locker   *lock.Locker
 	mq       *jobqueue.Queue
-	cronjobs []schedule.CronJob
+	cronjobs []CronJob
 }
 
-// NewScheduler declares Scheduler command dependencies.
-func NewScheduler(app *container.Application) *Scheduler {
-	return &Scheduler{app: app}
+// NewSchedulerCommand builds the scheduler command. app is injected by the
+// container; cron, lock, queue and cronjobs are resolved lazily in
+// PersistentPreRunE so unrelated commands don't spin up the scheduler.
+func NewSchedulerCommand(app *container.Application) *cobra.Command {
+	return (&schedulerCommand{app: app}).Command()
 }
 
 // Command constructs the scheduler cobra command.
-func (s *Scheduler) Command() *cobra.Command {
+func (s *schedulerCommand) Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "scheduler", Short: "Start cron queue scheduler",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
@@ -46,8 +47,8 @@ func (s *Scheduler) Command() *cobra.Command {
 				return err
 			}
 			// Collect cronjobs contributed by any provider implementing
-			// schedule.CronProvider, instead of one aggregated dig binding.
-			for _, cp := range container.ProvidersImplementing[schedule.CronProvider](s.app) {
+			// CronProvider, instead of one aggregated dig binding.
+			for _, cp := range container.ProvidersImplementing[CronProvider](s.app) {
 				s.cronjobs = append(s.cronjobs, cp.CronJobs()...)
 			}
 			return nil
@@ -61,7 +62,7 @@ func (s *Scheduler) Command() *cobra.Command {
 }
 
 // Handle runs the scheduler service.
-func (s *Scheduler) Handle(cmd *cobra.Command) error {
+func (s *schedulerCommand) Handle(cmd *cobra.Command) error {
 	runOnce, _ := cmd.Flags().GetBool("once")
 	runJob, _ := cmd.Flags().GetString("queue")
 	listJobs, _ := cmd.Flags().GetBool("list")
@@ -78,8 +79,8 @@ func (s *Scheduler) Handle(cmd *cobra.Command) error {
 		return errors.New("scheduler bootstrap failed: cron instance is nil")
 	}
 
-	mutex := schedule.NewRedisMutex(s.locker)
-	sched := schedule.NewScheduler(s.cron, mutex, s.mq, cmd.Root())
+	mutex := NewRedisMutex(s.locker)
+	sched := NewScheduler(s.cron, mutex, s.mq, cmd.Root())
 	sched.RegisterAll(s.cronjobs)
 
 	if listJobs {
@@ -125,7 +126,7 @@ func (s *Scheduler) Handle(cmd *cobra.Command) error {
 	return nil
 }
 
-func listAllEvents(sched *schedule.Scheduler) {
+func listAllEvents(sched *Scheduler) {
 	events := sched.ListEvents()
 	if len(events) == 0 {
 		fmt.Println("No cronjobs registered.")

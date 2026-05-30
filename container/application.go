@@ -14,10 +14,11 @@ import (
 // It follows Laravel's Application pattern: Register → Boot → Run.
 type Application struct {
 	*Container
-	providers   []support.ServiceProvider
-	commands    []console.ConsoleCommand
-	shutdownFns []func() error
-	booted      bool
+	providers        []support.Provider
+	commands         []console.ConsoleCommand
+	commandFactories []any
+	shutdownFns      []func() error
+	booted           bool
 }
 
 // NewApplication creates a new application with a fresh container.
@@ -32,13 +33,13 @@ func NewApplication() *Application {
 // container; the provider is then retained for Boot and capability collection.
 //
 // Providers are passed as constructed instances (a *XxxServiceProvider satisfies
-// support.ServiceProvider directly), mirroring Laravel's
+// support.Provider directly), mirroring Laravel's
 // $app->register(new Provider($app)). No adapter or reflection is involved.
 //
 // Usage:
 //
 //	app.Register(cache.NewServiceProvider(app), jwt.NewServiceProvider(app), ...)
-func (app *Application) Register(providers ...support.ServiceProvider) {
+func (app *Application) Register(providers ...support.Provider) {
 	for _, p := range providers {
 		p.Register()
 		app.providers = append(app.providers, p)
@@ -65,7 +66,7 @@ func (app *Application) Boot() error {
 }
 
 // Providers returns the registered service providers in registration order.
-func (app *Application) Providers() []support.ServiceProvider {
+func (app *Application) Providers() []support.Provider {
 	return app.providers
 }
 
@@ -83,10 +84,18 @@ func ProvidersImplementing[T any](app *Application) []T {
 	return out
 }
 
-// AddCommand registers console commands with the application.
-// Providers call this in their Register() method.
+// AddCommand registers built console commands with the application.
 func (app *Application) AddCommand(cmds ...console.ConsoleCommand) {
 	app.commands = append(app.commands, cmds...)
+}
+
+// RegisterCommands registers console commands by their constructors. Each
+// constructor is built through the container (constructor injection) when the
+// command tree is assembled in Run. This is the push counterpart to the
+// CommandProvider capability and backs support.ServiceProvider.Commands(), so
+// *Application satisfies support.Application.
+func (app *Application) RegisterCommands(constructors ...any) {
+	app.commandFactories = append(app.commandFactories, constructors...)
 }
 
 // OnShutdown registers a cleanup callback to be called during shutdown.
@@ -121,6 +130,16 @@ func (app *Application) Run(use, short string) error {
 	// Add all registered commands
 	for _, cc := range app.commands {
 		root.AddCommand(cc.Command())
+	}
+
+	// Build and add commands registered by constructor (push model): each
+	// factory's dependencies are injected from the container.
+	for _, ctor := range app.commandFactories {
+		cmd, err := app.BuildCommand(ctor)
+		if err != nil {
+			return err
+		}
+		root.AddCommand(cmd)
 	}
 
 	// Shutdown hook

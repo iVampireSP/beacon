@@ -1,4 +1,4 @@
-package command
+package bus
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/iVampireSP/foundation/bus"
 	"github.com/iVampireSP/foundation/container"
 	"github.com/iVampireSP/foundation/logger"
 	"github.com/iVampireSP/foundation/tracing"
@@ -18,13 +17,15 @@ import (
 // EventBus holds EventBus service dependencies.
 type EventBus struct {
 	app       *container.Application
-	bus       *bus.Bus
-	listeners []bus.Listener
+	bus       *Bus
+	listeners []Listener
 }
 
-// NewEventBus declares EventBus command dependencies.
-func NewEventBus(app *container.Application) *EventBus {
-	return &EventBus{app: app}
+// NewEventBus builds the eventbus command. app is injected by the container;
+// the bus and listeners are resolved lazily in PersistentPreRunE so unrelated
+// commands don't open a bus connection.
+func NewEventBus(app *container.Application) *cobra.Command {
+	return (&EventBus{app: app}).Command()
 }
 
 // Command constructs the eventbus cobra command.
@@ -32,14 +33,14 @@ func (e *EventBus) Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "eventbus", Short: "Start event bus consumer",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := e.app.Invoke(func(b *bus.Bus) {
+			if err := e.app.Invoke(func(b *Bus) {
 				e.bus = b
 			}); err != nil {
 				return err
 			}
 			// Collect listeners contributed by any provider implementing
-			// bus.ListenerProvider, instead of one aggregated dig binding.
-			for _, lp := range container.ProvidersImplementing[bus.ListenerProvider](e.app) {
+			// ListenerProvider, instead of one aggregated dig binding.
+			for _, lp := range container.ProvidersImplementing[ListenerProvider](e.app) {
 				e.listeners = append(e.listeners, lp.Listeners()...)
 			}
 			return nil
