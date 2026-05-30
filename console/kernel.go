@@ -1,19 +1,19 @@
 package console
 
 import (
-	"os"
-
 	"github.com/iVampireSP/foundation/container"
-	"github.com/iVampireSP/foundation/version"
-	"github.com/spf13/cobra"
 )
 
-// Kernel is the console application — the single home of all CLI/cobra handling,
-// mirroring Laravel's Artisan (Illuminate\Console\Application). Service providers
-// push their command constructors here via support.ServiceProvider.AddCommand
-// (so *Kernel satisfies support.Kernel); the kernel resolves each through the
-// container and assembles the cobra root. The DI container never deals with
-// commands.
+// Kernel is the console kernel — the bootstrap orchestrator for the CLI entry
+// point, mirroring Laravel's Illuminate\Foundation\Console\Kernel. It boots the
+// container and then delegates command execution to a console.Application (the
+// Artisan). Service providers push their command constructors here via
+// support.ServiceProvider.AddCommand (so *Kernel satisfies support.Kernel); on
+// Run the Kernel hands them to the Artisan, which resolves each through the
+// container. The DI container never deals with commands.
+//
+// This is the command-side counterpart of the service runtime: console.Kernel
+// + console.Application run CLI commands, just as transport.App runs servers.
 type Kernel struct {
 	app              *container.Application
 	commandFactories []any
@@ -31,53 +31,25 @@ func (k *Kernel) RegisterCommands(constructors ...any) {
 	k.commandFactories = append(k.commandFactories, constructors...)
 }
 
-// build invokes a command constructor with its parameters injected from the
-// container and returns the *cobra.Command it produces. The constructor may
-// declare any container-managed dependency, and may take *container.Application
-// to reach the container directly.
-func (k *Kernel) build(constructor any) (*cobra.Command, error) {
-	var cmd *cobra.Command
-	scope := k.app.Scope().Scope("command")
-	if err := scope.Provide(func() *container.Application { return k.app }); err != nil {
-		return nil, err
-	}
-	if err := scope.Provide(constructor); err != nil {
-		return nil, err
-	}
-	if err := scope.Invoke(func(c *cobra.Command) { cmd = c }); err != nil {
-		return nil, err
-	}
-	return cmd, nil
-}
-
-// Run boots the application, builds every registered command through the
-// container, assembles the cobra root, and executes it. The shutdown hooks run
-// after the command completes.
+// Run boots the application, builds the Artisan with every registered command,
+// executes it, and then shuts the application down. Mirrors the Laravel Kernel's
+// handle()/terminate(): bootstrap, delegate to Artisan, clean up. It returns the
+// command error (or shutdown error) for the entry point to map to an exit code.
 func (k *Kernel) Run(use, short string) error {
 	if err := k.app.Boot(); err != nil {
 		return err
 	}
 
-	root := &cobra.Command{
-		Use:     use,
-		Short:   short,
-		Version: version.String(),
-	}
+	artisan := NewApplication(k.app, use, short)
 	for _, ctor := range k.commandFactories {
-		cmd, err := k.build(ctor)
-		if err != nil {
+		if err := artisan.Add(ctor); err != nil {
 			return err
 		}
-		root.AddCommand(cmd)
 	}
 
-	root.PersistentPostRunE = func(_ *cobra.Command, _ []string) error {
-		return k.app.Shutdown()
+	err := artisan.Run()
+	if shutdownErr := k.app.Shutdown(); shutdownErr != nil && err == nil {
+		err = shutdownErr
 	}
-
-	if err := root.Execute(); err != nil {
-		_ = k.app.Shutdown()
-		os.Exit(1)
-	}
-	return nil
+	return err
 }
