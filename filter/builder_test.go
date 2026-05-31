@@ -8,7 +8,7 @@ import (
 
 func TestBuilder_Basic(t *testing.T) {
 	// Test basic string filter
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		String("status", "open").
 		String("priority", "high").
 		Build()
@@ -23,7 +23,7 @@ func TestBuilder_Basic(t *testing.T) {
 
 func TestBuilder_Uint(t *testing.T) {
 	// Test uint filter
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		Uint("user_id", "123").
 		Uint("assigned_to", "456").
 		Build()
@@ -38,7 +38,7 @@ func TestBuilder_Uint(t *testing.T) {
 
 func TestBuilder_EmptyValues(t *testing.T) {
 	// Test that empty values are not added
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		String("status", "").
 		Uint("user_id", "").
 		Build()
@@ -50,7 +50,7 @@ func TestBuilder_EmptyValues(t *testing.T) {
 
 func TestBuilder_InvalidUint(t *testing.T) {
 	// Test that invalid int values are ignored
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		Uint("user_id", "invalid").
 		String("status", "open").
 		Build()
@@ -65,7 +65,7 @@ func TestBuilder_InvalidUint(t *testing.T) {
 
 func TestBuilder_Chaining(t *testing.T) {
 	// Test method chaining
-	builder := filter.New()
+	builder := filter.NewFilterBuilder()
 	result := builder.
 		String("a", "1").
 		String("b", "2").
@@ -83,7 +83,7 @@ func TestBuilder_Chaining(t *testing.T) {
 
 func TestBuilder_UintValue(t *testing.T) {
 	// Test direct uint value
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		UintValue("id", 100).
 		UintValue("zero", 0). // Should not be added
 		Build()
@@ -98,7 +98,7 @@ func TestBuilder_UintValue(t *testing.T) {
 
 func TestBuilder_Where(t *testing.T) {
 	// Test generic Where method
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		Where("custom", "value").
 		Where("nil_value", nil). // Should not be added
 		Build()
@@ -112,7 +112,7 @@ func TestBuilder_Where(t *testing.T) {
 }
 
 func TestBuilder_Has(t *testing.T) {
-	builder := filter.New().
+	builder := filter.NewFilterBuilder().
 		String("status", "open")
 
 	if !builder.Has("status") {
@@ -124,7 +124,7 @@ func TestBuilder_Has(t *testing.T) {
 }
 
 func TestBuilder_Count(t *testing.T) {
-	builder := filter.New().
+	builder := filter.NewFilterBuilder().
 		String("a", "1").
 		String("b", "2").
 		String("c", "3")
@@ -135,7 +135,7 @@ func TestBuilder_Count(t *testing.T) {
 }
 
 func TestBuilder_Remove(t *testing.T) {
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		String("a", "1").
 		String("b", "2").
 		Remove("a").
@@ -150,7 +150,7 @@ func TestBuilder_Remove(t *testing.T) {
 }
 
 func TestBuilder_Clear(t *testing.T) {
-	builder := filter.New().
+	builder := filter.NewFilterBuilder().
 		String("a", "1").
 		String("b", "2").
 		Clear()

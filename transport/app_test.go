@@ -36,7 +36,7 @@ func TestAppRunStop(t *testing.T) {
 	srv := newFakeServer()
 	var beforeStart, afterStart, beforeStop, afterStop atomic.Bool
 
-	app := transport.New(
+	app := transport.NewTransportApp(
 		transport.ID("test-id"),
 		transport.Name("test-svc"),
 		transport.Version("v1"),

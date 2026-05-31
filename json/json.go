@@ -38,41 +38,41 @@ func Valid(data []byte) bool {
 	return sonic.Valid(data)
 }
 
-// Encoder wraps a sonic streaming encoder.
-type Encoder struct {
+// JSONEncoder wraps a sonic streaming encoder.
+type JSONEncoder struct {
 	enc sonic.Encoder
 }
 
-// NewEncoder returns a new Encoder that writes to w.
-func NewEncoder(w io.Writer) *Encoder {
-	return &Encoder{
+// NewJSONEncoder returns a new JSONEncoder that writes to w.
+func NewJSONEncoder(w io.Writer) *JSONEncoder {
+	return &JSONEncoder{
 		sonic.ConfigDefault.NewEncoder(w),
 	}
 }
 
 // Encode writes the JSON encoding of v to the stream.
-func (e *Encoder) Encode(v any) error {
+func (e *JSONEncoder) Encode(v any) error {
 	return e.enc.Encode(v)
 }
 
 // SetIndent sets the indentation for the encoder output.
-func (e *Encoder) SetIndent(prefix, indent string) {
+func (e *JSONEncoder) SetIndent(prefix, indent string) {
 	e.enc.SetIndent(prefix, indent)
 }
 
-// Decoder wraps a sonic streaming decoder.
-type Decoder struct {
+// JSONDecoder wraps a sonic streaming decoder.
+type JSONDecoder struct {
 	dec sonic.Decoder
 }
 
-// NewDecoder returns a new Decoder that reads from r.
-func NewDecoder(r io.Reader) *Decoder {
-	return &Decoder{
+// NewJSONDecoder returns a new JSONDecoder that reads from r.
+func NewJSONDecoder(r io.Reader) *JSONDecoder {
+	return &JSONDecoder{
 		sonic.ConfigDefault.NewDecoder(r),
 	}
 }
 
 // Decode reads the next JSON value from the stream and stores it in v.
-func (d *Decoder) Decode(v any) error {
+func (d *JSONDecoder) Decode(v any) error {
 	return d.dec.Decode(v)
 }

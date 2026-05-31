@@ -9,11 +9,11 @@ package transport
 
 import "context"
 
-// Server is a long-running transport server managed by the App. Start should
+// TransportServer is a long-running transport server managed by the App. Start should
 // block until the server stops (returning nil on a graceful stop); Stop should
 // drain it within the given context's deadline. The App runs every server's
 // Start concurrently and calls Stop when the App is shutting down.
-type Server interface {
+type TransportServer interface {
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
 }

@@ -4,21 +4,21 @@ import (
 	"strconv"
 )
 
-// Builder provides a fluent interface for building query filters
+// FilterBuilder provides a fluent interface for building query filters
 // Similar to Laravel's query builder pattern
-type Builder struct {
+type FilterBuilder struct {
 	filters map[string]any
 }
 
-// New creates a new filter builder
-func New() *Builder {
-	return &Builder{
+// NewFilterBuilder creates a new filter builder
+func NewFilterBuilder() *FilterBuilder {
+	return &FilterBuilder{
 		filters: make(map[string]any),
 	}
 }
 
 // String adds a string filter if the value is not empty
-func (b *Builder) String(key, value string) *Builder {
+func (b *FilterBuilder) String(key, value string) *FilterBuilder {
 	if value != "" {
 		b.filters[key] = value
 	}
@@ -27,7 +27,7 @@ func (b *Builder) String(key, value string) *Builder {
 
 // Uint adds a uint filter from a string value
 // Returns the builder for chaining even if parsing fails
-func (b *Builder) Uint(key, value string) *Builder {
+func (b *FilterBuilder) Uint(key, value string) *FilterBuilder {
 	if value != "" {
 		if parsed, err := strconv.ParseUint(value, 10, 32); err == nil {
 			b.filters[key] = uint(parsed)
@@ -37,7 +37,7 @@ func (b *Builder) Uint(key, value string) *Builder {
 }
 
 // UintValue adds a uint filter directly
-func (b *Builder) UintValue(key string, value uint) *Builder {
+func (b *FilterBuilder) UintValue(key string, value uint) *FilterBuilder {
 	if value > 0 {
 		b.filters[key] = value
 	}
@@ -45,7 +45,7 @@ func (b *Builder) UintValue(key string, value uint) *Builder {
 }
 
 // Int adds an int filter from a string value
-func (b *Builder) Int(key, value string) *Builder {
+func (b *FilterBuilder) Int(key, value string) *FilterBuilder {
 	if value != "" {
 		if parsed, err := strconv.Atoi(value); err == nil {
 			b.filters[key] = parsed
@@ -55,13 +55,13 @@ func (b *Builder) Int(key, value string) *Builder {
 }
 
 // IntValue adds an int filter directly
-func (b *Builder) IntValue(key string, value int) *Builder {
+func (b *FilterBuilder) IntValue(key string, value int) *FilterBuilder {
 	b.filters[key] = value
 	return b
 }
 
 // Bool adds a bool filter from a string value
-func (b *Builder) Bool(key, value string) *Builder {
+func (b *FilterBuilder) Bool(key, value string) *FilterBuilder {
 	if value != "" {
 		if parsed, err := strconv.ParseBool(value); err == nil {
 			b.filters[key] = parsed
@@ -71,13 +71,13 @@ func (b *Builder) Bool(key, value string) *Builder {
 }
 
 // BoolValue adds a bool filter directly
-func (b *Builder) BoolValue(key string, value bool) *Builder {
+func (b *FilterBuilder) BoolValue(key string, value bool) *FilterBuilder {
 	b.filters[key] = value
 	return b
 }
 
 // Where adds a filter with any value type
-func (b *Builder) Where(key string, value any) *Builder {
+func (b *FilterBuilder) Where(key string, value any) *FilterBuilder {
 	if value != nil {
 		b.filters[key] = value
 	}
@@ -85,7 +85,7 @@ func (b *Builder) Where(key string, value any) *Builder {
 }
 
 // WhereIn adds an IN filter (for slice values)
-func (b *Builder) WhereIn(key string, values []any) *Builder {
+func (b *FilterBuilder) WhereIn(key string, values []any) *FilterBuilder {
 	if len(values) > 0 {
 		b.filters[key] = values
 	}
@@ -93,35 +93,35 @@ func (b *Builder) WhereIn(key string, values []any) *Builder {
 }
 
 // Build returns the built filters map
-func (b *Builder) Build() map[string]any {
+func (b *FilterBuilder) Build() map[string]any {
 	return b.filters
 }
 
 // Get returns a specific filter value
-func (b *Builder) Get(key string) (any, bool) {
+func (b *FilterBuilder) Get(key string) (any, bool) {
 	val, exists := b.filters[key]
 	return val, exists
 }
 
 // Has checks if a filter exists
-func (b *Builder) Has(key string) bool {
+func (b *FilterBuilder) Has(key string) bool {
 	_, exists := b.filters[key]
 	return exists
 }
 
 // Count returns the number of filters
-func (b *Builder) Count() int {
+func (b *FilterBuilder) Count() int {
 	return len(b.filters)
 }
 
 // Clear removes all filters
-func (b *Builder) Clear() *Builder {
+func (b *FilterBuilder) Clear() *FilterBuilder {
 	b.filters = make(map[string]any)
 	return b
 }
 
 // Remove removes a specific filter
-func (b *Builder) Remove(key string) *Builder {
+func (b *FilterBuilder) Remove(key string) *FilterBuilder {
 	delete(b.filters, key)
 	return b
 }

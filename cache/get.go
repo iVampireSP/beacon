@@ -13,7 +13,7 @@ import (
 // parameters. They JSON-decode the stored value into T.
 
 // Get retrieves and decodes key into T. found is false on a cache miss.
-func Get[T any](ctx context.Context, s *Store, key string) (value T, found bool, err error) {
+func Get[T any](ctx context.Context, s *CacheStore, key string) (value T, found bool, err error) {
 	data, err := s.client.Get(ctx, key).Bytes()
 	if errors.Is(err, redis.Nil) {
 		return value, false, nil
@@ -29,7 +29,7 @@ func Get[T any](ctx context.Context, s *Store, key string) (value T, found bool,
 
 // Pull retrieves key and deletes it atomically via GETDEL (a single-key command,
 // so it is cluster-safe). found is false on a cache miss.
-func Pull[T any](ctx context.Context, s *Store, key string) (value T, found bool, err error) {
+func Pull[T any](ctx context.Context, s *CacheStore, key string) (value T, found bool, err error) {
 	data, err := s.client.GetDel(ctx, key).Bytes()
 	if errors.Is(err, redis.Nil) {
 		return value, false, nil
@@ -48,7 +48,7 @@ func Pull[T any](ctx context.Context, s *Store, key string) (value T, found bool
 // concurrent callers don't all hit the source (stampede); losers wait then
 // re-read. Lock and value are separate single-key operations — never one
 // cross-slot atomic op — so this is safe under Redis Cluster.
-func Remember[T any](ctx context.Context, s *Store, key string, ttl time.Duration, fn func() (T, error)) (T, error) {
+func Remember[T any](ctx context.Context, s *CacheStore, key string, ttl time.Duration, fn func() (T, error)) (T, error) {
 	if v, found, err := Get[T](ctx, s, key); err != nil {
 		var zero T
 		return zero, err
@@ -80,11 +80,11 @@ func Remember[T any](ctx context.Context, s *Store, key string, ttl time.Duratio
 }
 
 // RememberForever is Remember with no expiry.
-func RememberForever[T any](ctx context.Context, s *Store, key string, fn func() (T, error)) (T, error) {
+func RememberForever[T any](ctx context.Context, s *CacheStore, key string, fn func() (T, error)) (T, error) {
 	return Remember(ctx, s, key, 0, fn)
 }
 
-func computeAndStore[T any](ctx context.Context, s *Store, key string, ttl time.Duration, fn func() (T, error)) (T, error) {
+func computeAndStore[T any](ctx context.Context, s *CacheStore, key string, ttl time.Duration, fn func() (T, error)) (T, error) {
 	value, err := fn()
 	if err != nil {
 		return value, err

@@ -6,20 +6,20 @@ import (
 	"github.com/iVampireSP/beacon/support"
 )
 
-type ServiceProvider struct {
+type LoggerServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewLoggerServiceProvider(app contracts.Application) support.Provider {
+	return &LoggerServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
+func (p *LoggerServiceProvider) Register() {
 	p.app.Singleton(NewDefaultConfig)
-	p.app.Singleton(New)
+	p.app.Singleton(NewLogger)
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *LoggerServiceProvider) Boot() {}
 
 // NewDefaultConfig returns a logger Config populated from the application config.
 func NewDefaultConfig() Config {

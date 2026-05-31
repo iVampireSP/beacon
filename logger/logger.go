@@ -38,7 +38,7 @@ func init() {
 			Level: getEnv("LOG_LEVEL", "info"),
 			Debug: getEnvBool("APP_DEBUG", false),
 		}
-		logger, sugar := New(config)
+		logger, sugar := NewLogger(config)
 		globalLogger = &Logger{
 			Sugar:  sugar,
 			Logger: logger,
@@ -63,8 +63,8 @@ func getEnvBool(key string, defaultValue bool) bool {
 	return defaultValue
 }
 
-// New 创建新的 logger 实例
-func New(config Config) (*zap.Logger, *zap.SugaredLogger) {
+// NewLogger 创建新的 logger 实例
+func NewLogger(config Config) (*zap.Logger, *zap.SugaredLogger) {
 	var encoderConfig zapcore.EncoderConfig
 
 	if config.Debug {

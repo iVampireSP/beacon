@@ -89,7 +89,7 @@ func (t *Tracing) GetTrace(ctx context.Context, traceID string) (*Trace, bool, e
 			Message string `json:"msg"`
 		} `json:"errors"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+	if err := json.NewJSONDecoder(resp.Body).Decode(&payload); err != nil {
 		return nil, false, fmt.Errorf("decode tracing query response: %w", err)
 	}
 	if len(payload.Errors) > 0 {

@@ -1,5 +1,5 @@
 // Package grpcserver is the inbound counterpart of grpcclient: an
-// OpenTelemetry-instrumented gRPC server that implements transport.Server, so
+// OpenTelemetry-instrumented gRPC server that implements transport.TransportServer, so
 // the HTTP kernel runs it. The otelgrpc server handler extracts the W3C
 // traceparent from incoming metadata, continuing the caller's trace; the address
 // comes from config (grpc.host:grpc.port). An app registers its services onto
@@ -18,35 +18,35 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Server wraps *grpc.Server with listen + graceful shutdown. It satisfies
-// transport.Server.
-type Server struct {
+// GRPCServer wraps *grpc.Server with listen + graceful shutdown. It satisfies
+// transport.TransportServer.
+type GRPCServer struct {
 	srv  *grpc.Server
 	addr string
 }
 
-// New creates an instrumented gRPC server listening on the address from config
+// NewGRPCServer creates an instrumented gRPC server listening on the address from config
 // (grpc.host:grpc.port).
-func New(opts ...grpc.ServerOption) *Server {
+func NewGRPCServer(opts ...grpc.ServerOption) *GRPCServer {
 	addr := fmt.Sprintf("%s:%d",
 		config.String("grpc.host", "0.0.0.0"),
 		config.Int("grpc.port", 9000),
 	)
-	return NewAt(addr, opts...)
+	return NewGRPCServerAt(addr, opts...)
 }
 
-// NewAt creates an instrumented gRPC server bound to an explicit address.
-func NewAt(addr string, opts ...grpc.ServerOption) *Server {
+// NewGRPCServerAt creates an instrumented gRPC server bound to an explicit address.
+func NewGRPCServerAt(addr string, opts ...grpc.ServerOption) *GRPCServer {
 	opts = append(opts, grpc.StatsHandler(otelgrpc.NewServerHandler()))
-	return &Server{srv: grpc.NewServer(opts...), addr: addr}
+	return &GRPCServer{srv: grpc.NewServer(opts...), addr: addr}
 }
 
 // Registrar exposes the underlying server so services register themselves, e.g.
 // helloworldv1.RegisterHelloWorldServiceServer(srv.Registrar(), impl).
-func (s *Server) Registrar() grpc.ServiceRegistrar { return s.srv }
+func (s *GRPCServer) Registrar() grpc.ServiceRegistrar { return s.srv }
 
 // Start listens and serves, blocking until Stop is called. Satisfies transport.Server.
-func (s *Server) Start(_ context.Context) error {
+func (s *GRPCServer) Start(_ context.Context) error {
 	lis, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		return err
@@ -59,8 +59,8 @@ func (s *Server) Start(_ context.Context) error {
 }
 
 // Stop drains the server gracefully, force-stopping if ctx's deadline is hit.
-// Satisfies transport.Server.
-func (s *Server) Stop(ctx context.Context) error {
+// Satisfies transport.TransportServer.
+func (s *GRPCServer) Stop(ctx context.Context) error {
 	logger.Info("gRPC server shutting down")
 	stopped := make(chan struct{})
 	go func() {

@@ -11,7 +11,7 @@ import (
 
 // Up applies pending database migrations.
 func (m *Migrate) Up(cmd *cobra.Command) error {
-	if !hasMigrations() {
+	if !m.hasFiles {
 		fmt.Println("[OK] No migration files found, nothing to apply")
 		return nil
 	}

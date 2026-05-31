@@ -1,11 +1,11 @@
 package httpserver
 
 // Option configures Server components.
-type Option func(*Server)
+type Option func(*HTTPServer)
 
 // WithHTTP enables and configures the HTTP API component.
 func WithHTTP(cfg *Config, middlewares ...Middleware) Option {
-	return func(s *Server) {
+	return func(s *HTTPServer) {
 		if cfg == nil {
 			cfg = DefaultConfig(s.name, s.version)
 		}
@@ -23,7 +23,7 @@ func WithHTTP(cfg *Config, middlewares ...Middleware) Option {
 
 // WithMetrics enables and configures the metrics component.
 func WithMetrics(cfg MetricsConfig) Option {
-	return func(s *Server) {
+	return func(s *HTTPServer) {
 		if cfg.Name == "" {
 			cfg.Name = s.name
 		}

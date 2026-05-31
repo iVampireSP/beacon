@@ -9,15 +9,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type ServiceProvider struct {
+type CacheServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewCacheServiceProvider(app contracts.Application) support.Provider {
+	return &CacheServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
+func (p *CacheServiceProvider) Register() {
 	p.app.Singleton(NewDefaultRedisConfig)
 
 	// Capture the client when it is actually constructed and close it on
@@ -37,11 +37,11 @@ func (p *ServiceProvider) Register() {
 	})
 
 	// The cache facade and the distributed locker over the same client.
-	p.app.Singleton(NewStore)
+	p.app.Singleton(NewCacheStore)
 	p.app.Singleton(NewLocker)
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *CacheServiceProvider) Boot() {}
 
 // NewDefaultRedisConfig returns a RedisConfig populated from the application config.
 func NewDefaultRedisConfig() RedisConfig {

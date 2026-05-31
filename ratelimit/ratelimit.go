@@ -27,15 +27,15 @@ redis.call("PEXPIRE", key, window)
 return 1
 `)
 
-// Limiter 基于 Redis 的分布式滑动窗口限流器。
-type Limiter struct {
+// RateLimiter 基于 Redis 的分布式滑动窗口限流器。
+type RateLimiter struct {
 	client redis.UniversalClient
 	prefix string
 }
 
-// New 创建限流器实例。prefix 用于 key 前缀（如 "rl:oauth:"）。
-func New(client redis.UniversalClient, prefix string) *Limiter {
-	return &Limiter{
+// NewRateLimiter 创建限流器实例。prefix 用于 key 前缀（如 "rl:oauth:"）。
+func NewRateLimiter(client redis.UniversalClient, prefix string) *RateLimiter {
+	return &RateLimiter{
 		client: client,
 		prefix: prefix,
 	}
@@ -43,7 +43,7 @@ func New(client redis.UniversalClient, prefix string) *Limiter {
 
 // Allow 检查 key 在 window 窗口内是否未超过 rate 次。
 // Redis 不可用时 fail-open 放行。
-func (l *Limiter) Allow(ctx context.Context, key string, rate int, window time.Duration) bool {
+func (l *RateLimiter) Allow(ctx context.Context, key string, rate int, window time.Duration) bool {
 	if l == nil || l.client == nil {
 		return true
 	}

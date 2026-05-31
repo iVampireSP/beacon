@@ -9,6 +9,7 @@ import (
 
 	artisan "github.com/iVampireSP/beacon/console"
 	"github.com/iVampireSP/beacon/container"
+	"github.com/iVampireSP/beacon/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -33,15 +34,21 @@ func NewKernel(c *container.Container) *Kernel {
 // Handle builds every command constructor among contributions and executes the
 // Artisan. A contribution is a command constructor when it is a function
 // returning *cobra.Command; everything else (job handlers, listeners, cron jobs)
-// is claimed by other runtimes and ignored here. The returned error is cobra's
-// (already rendered); HandleCommand maps it to the process exit code.
+// is claimed by other runtimes and ignored here.
+//
+// Because every command is constructed up front to assemble the tree, an
+// unresolvable dependency in ONE command (e.g. a missing peer address) fails the
+// whole CLI. Cobra renders its own runtime errors, but a build error is not
+// cobra's, so we log it here — otherwise HandleCommand maps it to a bare exit
+// code and the failure is invisible.
 func (k *Kernel) Handle(use, short string, contributions []any) error {
-	app := artisan.NewApplication(k.container, use, short)
+	app := artisan.NewArtisan(k.container, use, short)
 	for _, c := range contributions {
 		if !isCommandConstructor(c) {
 			continue
 		}
 		if err := app.Add(c); err != nil {
+			logger.Error("failed to build console command", "error", err)
 			return err
 		}
 	}

@@ -27,7 +27,7 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logger, sugar := New(tt.config)
+			logger, sugar := NewLogger(tt.config)
 			if logger == nil {
 				t.Fatal("expected logger to be created")
 			}
@@ -66,7 +66,7 @@ func TestLogLevels(t *testing.T) {
 }
 
 func TestLoggerMethods(t *testing.T) {
-	logger, sugar := New(Config{
+	logger, sugar := NewLogger(Config{
 		Level: "debug",
 		Debug: true,
 	})

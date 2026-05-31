@@ -6,20 +6,20 @@ import (
 	"github.com/iVampireSP/beacon/support"
 )
 
-type ServiceProvider struct {
+type JWTServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewJWTServiceProvider(app contracts.Application) support.Provider {
+	return &JWTServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
+func (p *JWTServiceProvider) Register() {
 	p.app.Singleton(NewDefaultConfig)
 	p.app.Singleton(NewJWT)
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *JWTServiceProvider) Boot() {}
 
 // NewDefaultConfig returns a JWT Config populated from the application config.
 func NewDefaultConfig() Config {

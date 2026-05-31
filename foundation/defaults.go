@@ -22,12 +22,12 @@ import (
 // foundation can list these because they all depend only on contracts (not on
 // foundation), so there is no import cycle.
 var DefaultProviders = []contracts.ProviderConstructor{
-	logger.NewServiceProvider,
-	cache.NewServiceProvider, // also provides the distributed Locker
-	cron.NewServiceProvider,
-	tracing.NewServiceProvider,
+	logger.NewLoggerServiceProvider,
+	cache.NewCacheServiceProvider, // also provides the distributed Locker
+	cron.NewCronServiceProvider,
+	tracing.NewTracingServiceProvider,
 	queue.NewQueueServiceProvider,
 	bus.NewBusServiceProvider,
 	schedule.NewScheduleServiceProvider,
-	grpcclient.NewServiceProvider, // *Clients pool for calling peer services
+	grpcclient.NewGRPCClientServiceProvider, // *Clients pool for calling peer services
 }

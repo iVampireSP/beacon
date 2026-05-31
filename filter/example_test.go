@@ -9,7 +9,7 @@ import (
 // Example_basicUsage demonstrates basic filter building
 func Example_basicUsage() {
 	// Create filters with method chaining
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		String("status", "active").
 		Uint("user_id", "123").
 		String("priority", "high").
@@ -22,7 +22,7 @@ func Example_basicUsage() {
 // Example_emptyValues demonstrates that empty values are skipped
 func Example_emptyValues() {
 	// Empty values are automatically skipped
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		String("status", "").      // Will be skipped
 		String("priority", "low"). // Will be added
 		Uint("user_id", "").       // Will be skipped
@@ -35,7 +35,7 @@ func Example_emptyValues() {
 // Example_invalidValues demonstrates that invalid values are skipped
 func Example_invalidValues() {
 	// Invalid type conversions are automatically handled
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		Uint("user_id", "not_a_number"). // Will be skipped
 		String("status", "open").        // Will be added
 		Int("count", "invalid").         // Will be skipped
@@ -49,7 +49,7 @@ func Example_invalidValues() {
 func Example_directValues() {
 	userID := uint(100)
 
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		UintValue("user_id", userID).
 		UintValue("zero", 0). // Will be skipped (zero value)
 		IntValue("count", 5).
@@ -62,7 +62,7 @@ func Example_directValues() {
 
 // Example_conditionalFilters demonstrates dynamic filter building
 func Example_conditionalFilters() {
-	builder := filter.New().
+	builder := filter.NewFilterBuilder().
 		String("status", "open")
 
 	// Add filters conditionally
@@ -83,7 +83,7 @@ func Example_conditionalFilters() {
 
 // Example_builderMethods demonstrates various builder methods
 func Example_builderMethods() {
-	builder := filter.New().
+	builder := filter.NewFilterBuilder().
 		String("a", "1").
 		String("b", "2").
 		String("c", "3")
@@ -107,7 +107,7 @@ func Example_builderMethods() {
 // Example_whereMethod demonstrates the generic Where method
 func Example_whereMethod() {
 	// Use Where for any value type
-	filters := filter.New().
+	filters := filter.NewFilterBuilder().
 		Where("string_field", "value").
 		Where("int_field", 123).
 		Where("bool_field", true).
@@ -148,7 +148,7 @@ func Example_ticketFilters() {
 // Example_chainedBuilding demonstrates building filters step by step
 func Example_chainedBuilding() {
 	// Start with base filters
-	builder := filter.New().
+	builder := filter.NewFilterBuilder().
 		String("status", "active")
 
 	// Add more filters based on conditions
@@ -169,7 +169,7 @@ func Example_chainedBuilding() {
 
 // Example_clearAndReuse demonstrates clearing and reusing a builder
 func Example_clearAndReuse() {
-	builder := filter.New().
+	builder := filter.NewFilterBuilder().
 		String("status", "open").
 		String("priority", "high")
 

@@ -5,16 +5,16 @@ import (
 	"github.com/iVampireSP/beacon/support"
 )
 
-type ServiceProvider struct {
+type CronServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewCronServiceProvider(app contracts.Application) support.Provider {
+	return &CronServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
+func (p *CronServiceProvider) Register() {
 	p.app.Singleton(NewCron)
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *CronServiceProvider) Boot() {}

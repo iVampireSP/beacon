@@ -14,23 +14,23 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// App is the service runtime: it runs a set of servers under one service
+// TransportApp is the service runtime: it runs a set of servers under one service
 // identity and blocks until an OS signal — or a server error — triggers a
 // graceful shutdown, with before/after start/stop hooks. It mirrors the run
-// half of Kratos's kratos.App lifecycle.
+// half of Kratos's kratos.TransportApp lifecycle.
 //
 // Service registration/discovery is deliberately NOT here: in production the
 // service mesh (Istio) / Kubernetes handles discovery, LB and mTLS; locally a
 // peer's address comes from config. So there is no registry to run.
-type App struct {
+type TransportApp struct {
 	opts   options
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
-// New creates an App. Unless overridden by options, it fills in a random
+// NewTransportApp creates an App. Unless overridden by options, it fills in a random
 // instance ID and the default termination signals (SIGTERM, SIGQUIT, SIGINT).
-func New(opts ...Option) *App {
+func NewTransportApp(opts ...Option) *TransportApp {
 	o := options{
 		ctx:         context.Background(),
 		sigs:        []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
@@ -43,21 +43,21 @@ func New(opts ...Option) *App {
 		opt(&o)
 	}
 	ctx, cancel := context.WithCancel(o.ctx)
-	return &App{opts: o, ctx: ctx, cancel: cancel}
+	return &TransportApp{opts: o, ctx: ctx, cancel: cancel}
 }
 
 // ID returns the instance ID.
-func (a *App) ID() string { return a.opts.id }
+func (a *TransportApp) ID() string { return a.opts.id }
 
 // Name returns the service name.
-func (a *App) Name() string { return a.opts.name }
+func (a *TransportApp) Name() string { return a.opts.name }
 
 // Version returns the service version.
-func (a *App) Version() string { return a.opts.version }
+func (a *TransportApp) Version() string { return a.opts.version }
 
 // Run starts every server, runs the start hooks, and blocks until a shutdown
 // signal or a server error. It returns nil on a clean shutdown.
-func (a *App) Run() error {
+func (a *TransportApp) Run() error {
 	if err := runHooks(a.ctx, a.opts.beforeStart); err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (a *App) Run() error {
 
 // Stop gracefully shuts the App down: it runs the stop hooks, then cancels the
 // App context, which signals all servers to stop.
-func (a *App) Stop() error {
+func (a *TransportApp) Stop() error {
 	logger.Info("service stopping", "id", a.opts.id, "name", a.opts.name)
 
 	if err := runHooks(a.ctx, a.opts.beforeStop); err != nil {

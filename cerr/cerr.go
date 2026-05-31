@@ -106,8 +106,8 @@ func (e *Error) Format(args ...any) *Error {
 // Constructors for common HTTP errors
 // -----------------------------------------------------------------------------
 
-// New creates a new error with the given status and message.
-func New(status int, message string) *Error {
+// NewError creates a new error with the given status and message.
+func NewError(status int, message string) *Error {
 	return &Error{
 		Status:  status,
 		Message: message,
@@ -116,63 +116,63 @@ func New(status int, message string) *Error {
 
 // BadRequest creates a 400 Bad Request error.
 func BadRequest(message string) *Error {
-	return New(400, message)
+	return NewError(400, message)
 }
 
 // Unauthorized creates a 401 Unauthorized error.
 func Unauthorized(message string) *Error {
-	return New(401, message)
+	return NewError(401, message)
 }
 
 // Forbidden creates a 403 Forbidden error.
 func Forbidden(message string) *Error {
-	return New(403, message)
+	return NewError(403, message)
 }
 
 // NotFound creates a 404 Not Found error.
 func NotFound(message string) *Error {
-	return New(404, message)
+	return NewError(404, message)
 }
 
 // Conflict creates a 409 Conflict error.
 func Conflict(message string) *Error {
-	return New(409, message)
+	return NewError(409, message)
 }
 
 // Gone creates a 410 Gone error.
 func Gone(message string) *Error {
-	return New(410, message)
+	return NewError(410, message)
 }
 
 // PreconditionFailed creates a 412 Precondition Failed error.
 func PreconditionFailed(message string) *Error {
-	return New(412, message)
+	return NewError(412, message)
 }
 
 // UnprocessableEntity creates a 422 Unprocessable Entity error.
 func UnprocessableEntity(message string) *Error {
-	return New(422, message)
+	return NewError(422, message)
 }
 
 // TooManyRequests creates a 429 Too Many Requests error.
 func TooManyRequests(message string) *Error {
-	return New(429, message)
+	return NewError(429, message)
 }
 
 // Internal creates a 500 Internal Server Error.
 func Internal(message string) *Error {
-	return New(500, message)
+	return NewError(500, message)
 }
 
 // ServiceUnavailable creates a 503 Service Unavailable error.
 func ServiceUnavailable(message string) *Error {
-	return New(503, message)
+	return NewError(503, message)
 }
 
 // Validation creates a 422 Unprocessable Entity error with validation details.
 // Use huma.ErrorDetail for field errors to ensure RFC 9457 compliance.
 func Validation(message string) *Error {
-	return New(422, message).WithCode("VALIDATION_FAILED")
+	return NewError(422, message).WithCode("VALIDATION_FAILED")
 }
 
 // -----------------------------------------------------------------------------

@@ -83,8 +83,8 @@ func DefaultConfig(name, version string) *Config {
 	}
 }
 
-// Server wraps chi router and huma API.
-type Server struct {
+// HTTPServer wraps chi router and huma API.
+type HTTPServer struct {
 	Router         *chi.Mux
 	API            API
 	config         *Config
@@ -100,9 +100,9 @@ type Server struct {
 // Middleware is a chi middleware function.
 type Middleware = func(http.Handler) http.Handler
 
-// New creates a new server with optional components.
-func New(name, version string, opts ...Option) *Server {
-	s := &Server{
+// NewHTTPServer creates a new server with optional components.
+func NewHTTPServer(name, version string, opts ...Option) *HTTPServer {
+	s := &HTTPServer{
 		name:    name,
 		version: version,
 	}
@@ -194,7 +194,7 @@ func registerStatusRoutes(api API, cfg *Config) {
 
 // Start starts the HTTP server (non-blocking).
 // Use Run() for a blocking call with graceful shutdown.
-func (s *Server) Start() error {
+func (s *HTTPServer) Start() error {
 	if s.metricsEnabled {
 		if s.metricsServer == nil {
 			s.metricsServer = newMetricsServer(s.metricsConfig)
@@ -223,7 +223,7 @@ func (s *Server) Start() error {
 }
 
 // StartMetrics starts the metrics server if enabled (non-blocking).
-func (s *Server) StartMetrics() {
+func (s *HTTPServer) StartMetrics() {
 	if !s.metricsEnabled {
 		return
 	}
@@ -236,7 +236,7 @@ func (s *Server) StartMetrics() {
 // Run starts the server with metrics (if enabled) and handles graceful shutdown.
 // The cleanup function is called during shutdown (e.g., to stop bootstrap app).
 // This is a blocking call that returns when the server is fully stopped.
-func (s *Server) Run(cleanup func(context.Context) error) error {
+func (s *HTTPServer) Run(cleanup func(context.Context) error) error {
 	serverErr := make(chan error, 1)
 	go func() {
 		if err := s.Start(); err != nil {
@@ -277,7 +277,7 @@ func (s *Server) Run(cleanup func(context.Context) error) error {
 }
 
 // Shutdown gracefully shuts down the server.
-func (s *Server) Shutdown(ctx context.Context) error {
+func (s *HTTPServer) Shutdown(ctx context.Context) error {
 	if !s.httpEnabled {
 		return nil
 	}
@@ -288,7 +288,7 @@ func (s *Server) Shutdown(ctx context.Context) error {
 }
 
 // ShutdownMetricsWithTimeout gracefully shuts down the metrics server.
-func (s *Server) ShutdownMetricsWithTimeout() {
+func (s *HTTPServer) ShutdownMetricsWithTimeout() {
 	if s.metricsServer == nil {
 		return
 	}
@@ -296,14 +296,14 @@ func (s *Server) ShutdownMetricsWithTimeout() {
 }
 
 // ShutdownWithTimeout gracefully shuts down enabled components.
-func (s *Server) ShutdownWithTimeout() {
+func (s *HTTPServer) ShutdownWithTimeout() {
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout())
 	defer cancel()
 
 	s.shutdownWithContext(ctx)
 }
 
-func (s *Server) shutdownWithContext(ctx context.Context) {
+func (s *HTTPServer) shutdownWithContext(ctx context.Context) {
 	// 1. Shutdown API server
 	if err := s.Shutdown(ctx); err != nil {
 		logger.Error("shutdown", "name", s.name, "error", err)
@@ -317,7 +317,7 @@ func (s *Server) shutdownWithContext(ctx context.Context) {
 	}
 }
 
-func (s *Server) shutdownTimeout() time.Duration {
+func (s *HTTPServer) shutdownTimeout() time.Duration {
 	shutdownTimeout := 30 * time.Second
 	if s.config != nil && s.config.ShutdownTimeout != 0 {
 		shutdownTimeout = s.config.ShutdownTimeout
@@ -329,7 +329,7 @@ func (s *Server) shutdownTimeout() time.Duration {
 }
 
 // Addr returns the server address.
-func (s *Server) Addr() string {
+func (s *HTTPServer) Addr() string {
 	if s.config == nil {
 		return ""
 	}
@@ -337,7 +337,7 @@ func (s *Server) Addr() string {
 }
 
 // MetricsAddr returns the metrics server address.
-func (s *Server) MetricsAddr() string {
+func (s *HTTPServer) MetricsAddr() string {
 	if !s.metricsEnabled {
 		return ""
 	}
@@ -381,7 +381,7 @@ func jsonErrorHandler(status int, message string) http.HandlerFunc {
 			Errors: make([]*huma.ErrorDetail, 0),
 		}
 
-		json.NewEncoder(w).Encode(model)
+		json.NewJSONEncoder(w).Encode(model)
 	}
 }
 
@@ -488,7 +488,7 @@ func debugRequestLogger(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) setupHTTP(middlewares ...Middleware) {
+func (s *HTTPServer) setupHTTP(middlewares ...Middleware) {
 	if s.config == nil {
 		s.config = DefaultConfig(s.name, s.version)
 	}
@@ -571,7 +571,7 @@ func (s *Server) setupHTTP(middlewares ...Middleware) {
 	// Override JSON format for better performance
 	sonicFormat := huma.Format{
 		Marshal: func(w io.Writer, v any) error {
-			return json.NewEncoder(w).Encode(v)
+			return json.NewJSONEncoder(w).Encode(v)
 		},
 		Unmarshal: json.Unmarshal,
 	}

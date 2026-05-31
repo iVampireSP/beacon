@@ -18,16 +18,16 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// Clients is a pool of lazily-dialed, instrumented gRPC client connections to
+// GRPCClientPool is a pool of lazily-dialed, instrumented gRPC client connections to
 // peer services, keyed by logical service name.
-type Clients struct {
+type GRPCClientPool struct {
 	mu    sync.Mutex
 	conns map[string]*grpc.ClientConn
 }
 
-// NewClients creates an empty client pool.
-func NewClients() *Clients {
-	return &Clients{conns: make(map[string]*grpc.ClientConn)}
+// NewGRPCClientPool creates an empty client pool.
+func NewGRPCClientPool() *GRPCClientPool {
+	return &GRPCClientPool{conns: make(map[string]*grpc.ClientConn)}
 }
 
 // Conn returns a cached client connection to the named service, dialing it on
@@ -35,7 +35,7 @@ func NewClients() *Clients {
 // created over it, e.g. userv1.NewUserServiceClient(clients.Conn("user")).
 // Transport credentials are plaintext: in production the mesh terminates mTLS;
 // locally there is no TLS.
-func (c *Clients) Conn(name string) (*grpc.ClientConn, error) {
+func (c *GRPCClientPool) Conn(name string) (*grpc.ClientConn, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -60,7 +60,7 @@ func (c *Clients) Conn(name string) (*grpc.ClientConn, error) {
 }
 
 // Close closes every pooled connection.
-func (c *Clients) Close() error {
+func (c *GRPCClientPool) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

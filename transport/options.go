@@ -18,7 +18,7 @@ type options struct {
 	sigs []os.Signal
 
 	stopTimeout time.Duration
-	servers     []Server
+	servers     []TransportServer
 
 	beforeStart []func(context.Context) error
 	beforeStop  []func(context.Context) error
@@ -46,7 +46,7 @@ func Signal(sigs ...os.Signal) Option { return func(o *options) { o.sigs = sigs 
 func StopTimeout(d time.Duration) Option { return func(o *options) { o.stopTimeout = d } }
 
 // Servers adds servers for the App to run. May be called more than once.
-func Servers(srv ...Server) Option {
+func Servers(srv ...TransportServer) Option {
 	return func(o *options) { o.servers = append(o.servers, srv...) }
 }
 

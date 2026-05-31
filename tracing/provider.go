@@ -8,20 +8,20 @@ import (
 	"github.com/iVampireSP/beacon/support"
 )
 
-type ServiceProvider struct {
+type TracingServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewTracingServiceProvider(app contracts.Application) support.Provider {
+	return &TracingServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
+func (p *TracingServiceProvider) Register() {
 	p.app.Singleton(NewDefaultConfig)
 	p.app.Singleton(NewTracing)
 }
 
-func (p *ServiceProvider) Boot() {
+func (p *TracingServiceProvider) Boot() {
 	// Initialize the global tracing state from config so tracing.GetService
 	// works for every command. With tracing.enabled=false (the default) this
 	// records the "disabled" sentinel and GetService becomes a no-op; enabling

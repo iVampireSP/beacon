@@ -2,44 +2,66 @@ package db
 
 import (
 	"database/sql"
-	"embed"
-	"fmt"
 	"io/fs"
 	"strings"
 
-	"github.com/iVampireSP/beacon/cache"
 	"github.com/iVampireSP/beacon/contracts"
+	"github.com/iVampireSP/beacon/support"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
 
-// globalFS 保存嵌入的迁移文件系统
-var globalFS embed.FS
-
-// MustInitWithFS 初始化迁移文件系统（PostgreSQL 方言）
-func MustInitWithFS(migrationsFS embed.FS) {
-	subFS, err := fs.Sub(migrationsFS, "database/migrations")
-	if err != nil {
-		panic(fmt.Sprintf("failed to get migrations sub-fs: %v", err))
-	}
-	goose.SetTableName("migrations")
-	goose.SetBaseFS(subFS)
-	if err := goose.SetDialect("postgres"); err != nil {
-		panic(fmt.Sprintf("failed to set goose dialect: %v", err))
-	}
-	globalFS = migrationsFS
+// MigrationSource is where versioned .sql migrations are read from: an embedded
+// filesystem and the subpath within it holding the files. NewMigrationServiceProvider
+// binds it as a container singleton so the migrate command resolves it FROM THE
+// CONTAINER — no beacon globals (mirrors Laravel, where the migrator is a
+// container service, not global state). goose's own classic API is process-global,
+// which we accept (it's swappable); the FS source stays injected, so beacon holds
+// no migration globals.
+type MigrationSource struct {
+	FS  fs.FS
+	Dir string
 }
 
-// Migrate provides database migration commands.
+// NewMigrationServiceProvider returns a provider that binds the migration source
+// (so the migrate command resolves it from the container — no globals) and pushes
+// the migrate command tree — the analog of Laravel's MigrationServiceProvider. It
+// is an ordinary provider listed in the app's WithProviders, carrying its own
+// embedded fs, so foundation never imports db.
+func NewMigrationServiceProvider(fsys fs.FS, dir string) contracts.ProviderConstructor {
+	return func(app contracts.Application) support.Provider {
+		return &MigrationServiceProvider{app: app, fs: fsys, dir: dir}
+	}
+}
+
+// MigrationServiceProvider binds the MigrationSource and registers the migrate
+// command (up/down/status/fresh).
+type MigrationServiceProvider struct {
+	app contracts.Application
+	fs  fs.FS
+	dir string
+}
+
+func (p *MigrationServiceProvider) Register() {
+	p.app.Singleton(func() MigrationSource {
+		return MigrationSource{FS: p.fs, Dir: p.dir}
+	})
+	p.app.Add(NewMigrate)
+}
+
+func (p *MigrationServiceProvider) Boot() {}
+
+// Migrate provides database migration commands. It holds no global state: the
+// pool and migration source are injected per run in PersistentPreRunE.
 type Migrate struct {
-	app    contracts.Application
-	db     *sql.DB
-	locker *cache.Locker
+	app      contracts.Application
+	db       *sql.DB
+	hasFiles bool
 }
 
 // NewMigrate builds the migrate command tree. app is injected by the container;
-// the db pool and locker are resolved lazily in PersistentPreRunE so unrelated
-// commands don't open a database connection.
+// the db pool and migration source are resolved lazily in PersistentPreRunE so
+// unrelated commands don't touch the database.
 func NewMigrate(app contracts.Application) *cobra.Command {
 	return (&Migrate{app: app}).Command()
 }
@@ -49,9 +71,20 @@ func (m *Migrate) Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "migrate", Short: "Database migrations",
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			return m.app.Invoke(func(d *sql.DB, locker *cache.Locker) {
+			return m.app.Invoke(func(d *sql.DB, src MigrationSource) error {
 				m.db = d
-				m.locker = locker
+				sub, err := fs.Sub(src.FS, src.Dir)
+				if err != nil {
+					return err
+				}
+				m.hasFiles = hasSQL(sub)
+				// Point goose at the DI-injected FS, per run, right before use —
+				// not as a process-wide startup side-effect. goose's classic API is
+				// itself global, which we accept (it's swappable); the FS source is
+				// ours and stays injected, so beacon holds no migration globals.
+				goose.SetBaseFS(sub)
+				goose.SetTableName("migrations")
+				return goose.SetDialect("postgres")
 			})
 		},
 	}
@@ -74,9 +107,10 @@ func (m *Migrate) Command() *cobra.Command {
 	return cmd
 }
 
-// hasMigrations 检查嵌入的迁移目录中是否存在 .sql 文件
-func hasMigrations() bool {
-	entries, err := fs.ReadDir(globalFS, "database/migrations")
+// hasSQL reports whether the (already sub-rooted) migrations filesystem holds any
+// .sql files.
+func hasSQL(fsys fs.FS) bool {
+	entries, err := fs.ReadDir(fsys, ".")
 	if err != nil {
 		return false
 	}

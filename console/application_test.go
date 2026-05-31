@@ -17,7 +17,7 @@ func TestApplicationAddInjectsDependencies(t *testing.T) {
 	if err := c.Singleton(func() *buildDep { return &buildDep{name: "svc"} }); err != nil {
 		t.Fatalf("singleton: %v", err)
 	}
-	artisan := NewApplication(c, "beacon", "test root")
+	artisan := NewArtisan(c, "beacon", "test root")
 
 	var gotDep *buildDep
 	err := artisan.Add(func(dep *buildDep) *cobra.Command {

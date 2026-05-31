@@ -8,19 +8,19 @@ import (
 	"github.com/iVampireSP/beacon/support"
 )
 
-type ServiceProvider struct {
+type HTTPServerServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewHTTPServerServiceProvider(app contracts.Application) support.Provider {
+	return &HTTPServerServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
+func (p *HTTPServerServiceProvider) Register() {
 	p.app.Singleton(NewDefaultMetricsConfig)
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *HTTPServerServiceProvider) Boot() {}
 
 func NewDefaultMetricsConfig() MetricsConfig {
 	return MetricsConfig{

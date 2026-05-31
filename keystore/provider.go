@@ -6,20 +6,20 @@ import (
 	"github.com/iVampireSP/beacon/support"
 )
 
-type ServiceProvider struct {
+type KeyStoreServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewKeyStoreServiceProvider(app contracts.Application) support.Provider {
+	return &KeyStoreServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
+func (p *KeyStoreServiceProvider) Register() {
 	p.app.Singleton(NewDefaultConfig)
 	p.app.Singleton(NewKeyStore)
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *KeyStoreServiceProvider) Boot() {}
 
 // NewDefaultConfig returns a KeyStore Config populated from the application
 // config, unmarshalling the keystore subtree directly (the keys map has

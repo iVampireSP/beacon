@@ -15,18 +15,18 @@ import (
 	"github.com/iVampireSP/beacon/version"
 )
 
-// Kernel runs the service's transport servers — the network analog of the
+// HTTPKernel runs the service's transport servers — the network analog of the
 // console kernel. Handle bootstraps (idempotently) then serves, mirroring
-// Http\Kernel::handle's bootstrap-then-dispatch shape.
-type Kernel struct {
+// Http\HTTPKernel::handle's bootstrap-then-dispatch shape.
+type HTTPKernel struct {
 	app  contracts.Application
 	opts []transport.Option
 }
 
-// NewKernel creates an HTTP kernel bound to the application. Extra transport
+// NewHTTPKernel creates an HTTP kernel bound to the application. Extra transport
 // options (registry, custom signals, hooks) are applied on every Handle.
-func NewKernel(app contracts.Application, opts ...transport.Option) *Kernel {
-	return &Kernel{app: app, opts: opts}
+func NewHTTPKernel(app contracts.Application, opts ...transport.Option) *HTTPKernel {
+	return &HTTPKernel{app: app, opts: opts}
 }
 
 // Handle boots the application (idempotent — the console kernel has normally
@@ -34,7 +34,7 @@ func NewKernel(app contracts.Application, opts ...transport.Option) *Kernel {
 // the service identity from config ("app.name") and the build version, until a
 // shutdown signal. Shutdown of application resources is owned by the console
 // kernel that invoked the serving command, so it is not repeated here.
-func (k *Kernel) Handle(servers ...transport.Server) error {
+func (k *HTTPKernel) Handle(servers ...transport.TransportServer) error {
 	if err := k.app.Boot(); err != nil {
 		return err
 	}
@@ -53,5 +53,5 @@ func (k *Kernel) Handle(servers ...transport.Server) error {
 	}, k.opts...)
 	opts = append(opts, transport.Servers(servers...))
 
-	return transport.New(opts...).Run()
+	return transport.NewTransportApp(opts...).Run()
 }

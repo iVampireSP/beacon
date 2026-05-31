@@ -6,20 +6,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Application is the console application that owns and runs the CLI commands —
-// the analog of Laravel's Illuminate\Console\Application (Artisan). It resolves
+// Artisan is the console application that owns and runs the CLI commands —
+// the analog of Laravel's Illuminate\Console\Artisan (Artisan). It resolves
 // each command's constructor through the container (constructor injection) and
 // assembles the cobra root. The Foundation console kernel bootstraps the
 // framework and then delegates execution here.
-type Application struct {
+type Artisan struct {
 	container *container.Container
 	root      *cobra.Command
 }
 
-// NewApplication creates the Artisan over the DI container, with the given root
+// NewArtisan creates the Artisan over the DI container, with the given root
 // command identity.
-func NewApplication(c *container.Container, use, short string) *Application {
-	return &Application{
+func NewArtisan(c *container.Container, use, short string) *Artisan {
+	return &Artisan{
 		container: c,
 		root: &cobra.Command{
 			Use:     use,
@@ -33,7 +33,7 @@ func NewApplication(c *container.Container, use, short string) *Application {
 // resulting *cobra.Command on the root. The constructor declares its
 // dependencies as parameters; the foundation.Application is registered as a
 // container singleton, so a command may inject it like any other dependency.
-func (a *Application) Add(constructor any) error {
+func (a *Artisan) Add(constructor any) error {
 	cmd, err := a.build(constructor)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (a *Application) Add(constructor any) error {
 }
 
 // Run executes the root command, dispatching to the selected subcommand.
-func (a *Application) Run() error {
+func (a *Artisan) Run() error {
 	return a.root.Execute()
 }
 
@@ -51,7 +51,7 @@ func (a *Application) Run() error {
 // container and returns the *cobra.Command it produces. Each constructor runs in
 // its own child scope so several constructors requesting the same dependency
 // type don't collide.
-func (a *Application) build(constructor any) (*cobra.Command, error) {
+func (a *Artisan) build(constructor any) (*cobra.Command, error) {
 	var cmd *cobra.Command
 	scope := a.container.Scope().Scope("command")
 	if err := scope.Provide(constructor); err != nil {

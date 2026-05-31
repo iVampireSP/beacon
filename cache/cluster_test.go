@@ -24,7 +24,7 @@ import (
 	"github.com/iVampireSP/beacon/cache"
 )
 
-func newClusterStore(t *testing.T) *cache.Store {
+func newClusterStore(t *testing.T) *cache.CacheStore {
 	t.Helper()
 	addrs := os.Getenv("BEACON_REDIS_CLUSTER")
 	if addrs == "" {
@@ -32,7 +32,7 @@ func newClusterStore(t *testing.T) *cache.Store {
 	}
 	client := cache.NewCache(cache.RedisConfig{ClusterAddrs: addrs})
 	t.Cleanup(func() { _ = client.Close() })
-	return cache.NewStore(client)
+	return cache.NewCacheStore(client)
 }
 
 // TestClusterCrossSlotReads is the core worry: in a cluster, keys hash to many

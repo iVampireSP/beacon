@@ -14,12 +14,12 @@ import (
 // over it. Single-node, so it exercises the facade logic + the lock Lua; the
 // cluster-specific Flush fan-out and slot routing are go-redis concerns that need
 // a real cluster.
-func newStore(t *testing.T) *cache.Store {
+func newStore(t *testing.T) *cache.CacheStore {
 	t.Helper()
 	mr := miniredis.RunT(t)
 	client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
 	t.Cleanup(func() { _ = client.Close() })
-	return cache.NewStore(client)
+	return cache.NewCacheStore(client)
 }
 
 func TestPutGet(t *testing.T) {

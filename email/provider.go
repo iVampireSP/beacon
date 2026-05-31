@@ -6,20 +6,20 @@ import (
 	"github.com/iVampireSP/beacon/support"
 )
 
-type ServiceProvider struct {
+type EmailServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewEmailServiceProvider(app contracts.Application) support.Provider {
+	return &EmailServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
+func (p *EmailServiceProvider) Register() {
 	p.app.Singleton(NewDefaultConfig)
 	p.app.Singleton(NewEmail)
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *EmailServiceProvider) Boot() {}
 
 // NewDefaultConfig returns an email Config populated from the application config.
 func NewDefaultConfig() Config {

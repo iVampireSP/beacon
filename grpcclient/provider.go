@@ -7,20 +7,20 @@ import (
 	"github.com/iVampireSP/beacon/support"
 )
 
-// ServiceProvider registers the gRPC client pool as a singleton and closes its
+// GRPCClientServiceProvider registers the gRPC client pool as a singleton and closes its
 // connections on shutdown.
-type ServiceProvider struct {
+type GRPCClientServiceProvider struct {
 	app contracts.Application
 }
 
-func NewServiceProvider(app contracts.Application) support.Provider {
-	return &ServiceProvider{app: app}
+func NewGRPCClientServiceProvider(app contracts.Application) support.Provider {
+	return &GRPCClientServiceProvider{app: app}
 }
 
-func (p *ServiceProvider) Register() {
-	var pool atomic.Pointer[Clients]
-	p.app.Singleton(func() *Clients {
-		c := NewClients()
+func (p *GRPCClientServiceProvider) Register() {
+	var pool atomic.Pointer[GRPCClientPool]
+	p.app.Singleton(func() *GRPCClientPool {
+		c := NewGRPCClientPool()
 		pool.Store(c)
 		return c
 	})
@@ -32,4 +32,4 @@ func (p *ServiceProvider) Register() {
 	})
 }
 
-func (p *ServiceProvider) Boot() {}
+func (p *GRPCClientServiceProvider) Boot() {}

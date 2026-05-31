@@ -3,6 +3,7 @@ package foundation
 import (
 	"io/fs"
 
+	"github.com/iVampireSP/beacon/config"
 	"github.com/iVampireSP/beacon/contracts"
 	"github.com/iVampireSP/beacon/foundation/bootstrap"
 	fconsole "github.com/iVampireSP/beacon/foundation/console"
@@ -11,21 +12,23 @@ import (
 // Builder configures and creates an Application — the analog of Laravel's
 // Illuminate\Foundation\Configuration\ApplicationBuilder, used as
 // foundation.Configure().WithConfig(...).WithProviders(...).Create(), mirroring
-// Application::configure(...)->withProviders(...)->create(). The configured
-// resources and providers become the ordered bootstrappers the application runs
-// on HandleCommand.
+// Application::configure(...)->withProviders(...)->create().
+//
+// Like Laravel's builder it configures BEHAVIOUR — providers and commands — not
+// resource locations, with ONE exception: WithConfig. Config is privileged in
+// every faithful framework (Laravel's LoadConfiguration bootstrapper; goravel's
+// config base provider) because it must load before any provider reads it, so the
+// builder takes the config source and registers it as the first provider. Every
+// OTHER resource (translations, templates, migrations) is an ordinary provider in
+// WithProviders — i18n.NewI18nServiceProvider(fs,dir), etc. — so foundation
+// imports only config, not i18n/tmpl/db.
 type Builder struct {
 	providers    []contracts.ProviderConstructor
 	commandCtors []any
 
 	configFS  fs.FS
 	configDir string
-	langFS    fs.FS
-	langDir   string
-
-	templatesFS  fs.FS
-	templatesDir string
-	hasTemplates bool
+	hasConfig bool
 }
 
 // Configure starts building an application. The CLI root identity (use, short)
@@ -34,24 +37,13 @@ func Configure() *Builder {
 	return &Builder{}
 }
 
-// WithConfig sets the embedded filesystem the LoadConfiguration bootstrapper
-// loads application config from.
+// WithConfig sets the embedded filesystem the configuration is loaded from. It is
+// registered as a PRIVILEGED provider — first, before the framework's default
+// providers — so config is populated before anything reads it (the goravel model;
+// Laravel's LoadConfiguration). This is the only resource the builder knows about
+// directly, because only config must precede the providers.
 func (b *Builder) WithConfig(fsys fs.FS, dir string) *Builder {
-	b.configFS, b.configDir = fsys, dir
-	return b
-}
-
-// WithLocale sets the embedded filesystem the LoadTranslations bootstrapper loads
-// i18n catalogs from.
-func (b *Builder) WithLocale(fsys fs.FS, dir string) *Builder {
-	b.langFS, b.langDir = fsys, dir
-	return b
-}
-
-// WithTemplates sets the filesystem and subdir the LoadTemplates bootstrapper
-// parses templates from.
-func (b *Builder) WithTemplates(fsys fs.FS, dir string) *Builder {
-	b.templatesFS, b.templatesDir, b.hasTemplates = fsys, dir, true
+	b.configFS, b.configDir, b.hasConfig = fsys, dir, true
 	return b
 }
 
@@ -82,26 +74,21 @@ func (b *Builder) Create() *Application {
 	return app
 }
 
-// bootstrappers assembles the ordered boot sequence from the configured sources:
-// load config → load translations → load templates → register providers → boot
-// providers. Only the resource loaders that were configured are included.
+// bootstrappers assembles the ordered boot sequence: register providers → boot
+// providers (the fixed framework steps, like Laravel's Kernel::$bootstrappers).
+// The provider list is ordered config (privileged, if set) → framework defaults →
+// the app's own, so config is registered and loaded before any provider reads it.
 func (b *Builder) bootstrappers() []bootstrap.Bootstrapper {
-	var list []bootstrap.Bootstrapper
-	if b.configFS != nil {
-		list = append(list, bootstrap.LoadConfiguration{FS: b.configFS, Dir: b.configDir})
+	var providers []contracts.ProviderConstructor
+	if b.hasConfig {
+		providers = append(providers, config.NewConfigServiceProvider(b.configFS, b.configDir))
 	}
-	if b.langFS != nil {
-		list = append(list, bootstrap.LoadTranslations{FS: b.langFS, Dir: b.langDir})
-	}
-	if b.hasTemplates {
-		list = append(list, bootstrap.LoadTemplates{FS: b.templatesFS, Dir: b.templatesDir})
-	}
-	// Built-in framework providers first, then the app's own — mirroring how
+	// Built-in framework providers next, then the app's own — mirroring how
 	// Laravel merges ServiceProvider::defaultProviders() with the app's list.
-	providers := append(append([]contracts.ProviderConstructor{}, DefaultProviders...), b.providers...)
-	list = append(list,
+	providers = append(providers, DefaultProviders...)
+	providers = append(providers, b.providers...)
+	return []bootstrap.Bootstrapper{
 		bootstrap.RegisterProviders{Providers: providers},
 		bootstrap.BootProviders{},
-	)
-	return list
+	}
 }
